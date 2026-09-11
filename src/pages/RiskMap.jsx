@@ -171,81 +171,73 @@ function RiskMap() {
   };
 
   return (
-    <div className="min-h-screen bg-slate-50">
+    <div className="min-h-screen">
       <Sidebar />
 
       <div className="app-main">
         <Navbar />
 
-        <main className="page-enter p-8">
+        <main className="page-enter page-container p-4 sm:p-6 lg:p-8 lg:pr-14 xl:pr-20">
 
-          {/* =========================
-              PAGE HEADING
-          ========================== */}
-          <div className="mb-6 flex flex-col justify-between gap-4 lg:flex-row lg:items-end">
+  {/* =========================
+      PAGE HEADING
+  ========================== */}
+  <div className="flex flex-col justify-between gap-4 lg:flex-row lg:items-end">
 
-            <div>
-              <div className="mb-2 flex items-center gap-2">
-                <span className="h-2 w-2 rounded-full bg-red-500"></span>
+    <div className="min-w-0">
+      <div className="mb-2 flex items-center gap-2">
+        <span className="h-2 w-2 rounded-full bg-red-500"></span>
 
-                <span className="text-xs font-semibold uppercase tracking-widest text-red-500">
-                  GIS Monitoring
-                </span>
-              </div>
+        <span className="text-xs font-semibold uppercase tracking-widest text-red-500">
+          GIS Monitoring
+        </span>
+      </div>
 
-              <h1 className="text-3xl font-bold tracking-tight text-slate-900">
-                Regional Risk Map
-              </h1>
+      <h1 className="text-2xl font-bold tracking-tight text-[#12293f] sm:text-3xl">
+        Regional Risk Map
+      </h1>
 
-              <p className="mt-2 max-w-2xl text-sm text-slate-500">
-                Geospatial visualization of landslide and environmental
-                risk zones across the North Eastern Region.
-              </p>
-            </div>
+      <p className="mt-2 max-w-2xl text-sm text-slate-500">
+        Geospatial visualization of landslide and environmental
+        risk zones across the North Eastern Region.
+      </p>
+    </div>
 
-            {/* Search */}
-            <div className="flex w-full items-center rounded-xl border border-slate-200 bg-white px-4 py-3 shadow-sm lg:w-72">
-              <Search size={17} className="text-slate-400" />
+    {/* Search */}
+    <div className="flex w-full shrink-0 items-center rounded-md border border-slate-200 bg-white px-4 py-3 shadow-sm lg:w-72">
+      <Search size={17} className="text-slate-400" />
 
-              <input
-                type="text"
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                placeholder="Search location..."
-                className="ml-3 w-full bg-transparent text-sm outline-none placeholder:text-slate-400"
-              />
-            </div>
-          </div>
+      <input
+        type="text"
+        value={searchTerm}
+        onChange={(e) => setSearchTerm(e.target.value)}
+        placeholder="Search location..."
+        className="ml-3 w-full bg-transparent text-sm outline-none placeholder:text-slate-400"
+      />
+    </div>
+  </div>
 
-          {/* =========================
-              MAP
-          ========================== */}
-          <div className="relative h-[650px] overflow-hidden rounded-2xl border border-slate-200 bg-slate-950 shadow-sm">
+  {/* =========================
+      MAP
+  ========================== */}
+  <div className="relative h-[calc(100vh-260px)] min-h-[420px] max-h-[640px] overflow-hidden rounded-lg border border-[#1c3d5a] bg-[#0f2338] shadow-sm">
 
-            {/* Fake satellite / terrain background */}
+            {/* Cartographic grid background */}
             <div
-              className="absolute inset-0 opacity-80"
+              className="absolute inset-0"
               style={{
                 backgroundImage: `
-                  linear-gradient(rgba(71,85,105,0.18) 1px, transparent 1px),
-                  linear-gradient(90deg, rgba(71,85,105,0.18) 1px, transparent 1px),
-                  radial-gradient(circle at 50% 40%, rgba(16,185,129,0.18), transparent 30%),
-                  radial-gradient(circle at 75% 20%, rgba(245,158,11,0.12), transparent 25%),
-                  radial-gradient(circle at 35% 70%, rgba(59,130,246,0.10), transparent 30%)
+                  linear-gradient(rgba(61,88,114,0.35) 1px, transparent 1px),
+                  linear-gradient(90deg, rgba(61,88,114,0.35) 1px, transparent 1px)
                 `,
-                backgroundSize:
-                  "45px 45px, 45px 45px, 100% 100%, 100% 100%, 100% 100%",
+                backgroundSize: "45px 45px, 45px 45px",
               }}
             />
 
-            {/* Terrain shapes */}
-            <div className="absolute left-[15%] top-[18%] h-64 w-72 rotate-12 rounded-[45%] bg-emerald-950/60 blur-xl"></div>
-
-            <div className="absolute left-[43%] top-[12%] h-72 w-80 -rotate-6 rounded-[50%] bg-emerald-900/50 blur-xl"></div>
-
-            <div className="absolute right-[12%] top-[25%] h-72 w-64 rotate-12 rounded-[45%] bg-slate-800/80 blur-xl"></div>
-
-            <div className="absolute bottom-[5%] left-[30%] h-64 w-96 -rotate-12 rounded-[50%] bg-blue-950/50 blur-xl"></div>
+            {/* Region outline accents (static, official cartographic style) */}
+            <div className="absolute inset-8 rounded-md border border-dashed border-[#3d5872]" />
+            <div className="absolute left-[10%] top-[10%] h-[35%] w-[45%] rounded-md border border-[#3d5872]/70" />
+            <div className="absolute bottom-[15%] right-[12%] h-[40%] w-[38%] rounded-md border border-[#3d5872]/70" />
 
             {/* =========================
                 RISK FILTERS
@@ -257,10 +249,10 @@ function RiskMap() {
                   <button
                     key={item}
                     onClick={() => setFilter(item)}
-                    className={`rounded-lg border px-3 py-2 text-xs font-semibold backdrop-blur transition ${
+                    className={`rounded-lg border px-3 py-2 text-xs font-semibold transition ${
                       filter === item
-                        ? "border-emerald-500 bg-emerald-500 text-white"
-                        : "border-white/10 bg-slate-950/80 text-slate-300 hover:bg-slate-800"
+                        ? "border-[#b8862e] bg-[#b8862e] text-white"
+                        : "border-white/10 bg-[#0b1c2c]/90 text-slate-300 hover:bg-[#0c1f33]"
                     }`}
                   >
                     {item}
@@ -273,10 +265,10 @@ function RiskMap() {
             {/* =========================
                 MAP TOOLS
             ========================== */}
-            <div className="absolute right-5 top-5 z-20 flex flex-col overflow-hidden rounded-xl border border-white/10 bg-slate-950/80 backdrop-blur">
+            <div className="absolute right-5 top-5 z-20 flex flex-col overflow-hidden rounded-md border border-white/10 bg-slate-950/80 backdrop-blur">
 
               <button
-                className="p-3 text-slate-300 hover:bg-slate-800"
+                className="p-3 text-slate-300 hover:bg-[#0c1f33]"
                 title="Zoom in"
               >
                 <Plus size={18} />
@@ -285,7 +277,7 @@ function RiskMap() {
               <div className="border-t border-white/10"></div>
 
               <button
-                className="p-3 text-slate-300 hover:bg-slate-800"
+                className="p-3 text-slate-300 hover:bg-[#0c1f33]"
                 title="Zoom out"
               >
                 <Minus size={18} />
@@ -294,7 +286,7 @@ function RiskMap() {
               <div className="border-t border-white/10"></div>
 
               <button
-                className="p-3 text-slate-300 hover:bg-slate-800"
+                className="p-3 text-slate-300 hover:bg-[#0c1f33]"
                 title="My location"
               >
                 <Navigation size={18} />
@@ -303,7 +295,7 @@ function RiskMap() {
               <div className="border-t border-white/10"></div>
 
               <button
-                className="p-3 text-slate-300 hover:bg-slate-800"
+                className="p-3 text-slate-300 hover:bg-[#0c1f33]"
                 title="Map layers"
               >
                 <Layers size={18} />
@@ -346,18 +338,14 @@ function RiskMap() {
                   }}
                 >
 
-                  {/* Pulse */}
+                  {/* Static risk ring */}
                   <span
-                    className={`absolute -inset-3 rounded-full ${ringColor} opacity-20 ${
-                      zone.risk === "Critical"
-                        ? "animate-ping"
-                        : ""
-                    }`}
+                    className={`absolute -inset-3 rounded-full ${ringColor} opacity-20`}
                   ></span>
 
                   {/* Selected ring */}
                   {isSelected && (
-                    <span className="absolute -inset-2 rounded-full border-2 border-white/70"></span>
+                    <span className="absolute -inset-2 rounded-full border-2 border-[#d9a94a]"></span>
                   )}
 
                   {/* Marker */}
@@ -381,7 +369,7 @@ function RiskMap() {
 
             {/* No search results */}
             {filteredZones.length === 0 && (
-              <div className="absolute left-1/2 top-1/2 z-20 -translate-x-1/2 -translate-y-1/2 rounded-xl border border-white/10 bg-slate-950/90 px-6 py-4 text-center">
+              <div className="absolute left-1/2 top-1/2 z-20 -translate-x-1/2 -translate-y-1/2 rounded-md border border-white/10 bg-slate-950/90 px-6 py-4 text-center">
                 <p className="text-sm font-semibold text-white">
                   No zones found
                 </p>
@@ -395,7 +383,7 @@ function RiskMap() {
             {/* =========================
                 MAP LEGEND
             ========================== */}
-            <div className="absolute bottom-5 left-5 z-20 rounded-xl border border-white/10 bg-slate-950/90 p-4 backdrop-blur">
+            <div className="absolute bottom-5 left-5 z-20 rounded-md border border-white/10 bg-slate-950/90 p-4 backdrop-blur">
 
               <p className="mb-3 text-[10px] font-bold uppercase tracking-widest text-slate-400">
                 Risk Level
@@ -442,7 +430,7 @@ function RiskMap() {
                 SELECTED ZONE PANEL
             ========================== */}
             {selectedZone && (
-              <div className="absolute bottom-5 right-5 z-30 w-[350px] rounded-2xl border border-slate-200 bg-white p-5 shadow-2xl">
+              <div className="absolute bottom-5 right-5 left-5 z-30 max-h-[calc(100%-2.5rem)] w-auto overflow-y-auto glass-card p-5 sm:left-auto sm:w-[350px]">
 
                 {/* Header */}
                 <div className="flex items-start justify-between">
@@ -500,7 +488,7 @@ function RiskMap() {
                 </div>
 
                 {/* Probability */}
-                <div className="mt-5 rounded-xl bg-red-50 p-4">
+                <div className="mt-5 rounded-md bg-red-50 p-4">
 
                   <div className="flex items-center justify-between">
 
@@ -538,7 +526,7 @@ function RiskMap() {
                 <div className="mt-4 grid grid-cols-2 gap-3">
 
                   {/* Rainfall */}
-                  <div className="rounded-xl border border-slate-100 bg-slate-50 p-3">
+                  <div className="rounded-md border border-slate-100 bg-slate-50 p-3">
 
                     <div className="flex items-center gap-2">
                       <CloudRain
@@ -558,7 +546,7 @@ function RiskMap() {
                   </div>
 
                   {/* Soil moisture */}
-                  <div className="rounded-xl border border-slate-100 bg-slate-50 p-3">
+                  <div className="rounded-md border border-slate-100 bg-slate-50 p-3">
 
                     <div className="flex items-center gap-2">
                       <Droplets
@@ -578,7 +566,7 @@ function RiskMap() {
                   </div>
 
                   {/* Slope */}
-                  <div className="rounded-xl border border-slate-100 bg-slate-50 p-3">
+                  <div className="rounded-md border border-slate-100 bg-slate-50 p-3">
 
                     <div className="flex items-center gap-2">
                       <Mountain
@@ -598,7 +586,7 @@ function RiskMap() {
                   </div>
 
                   {/* Population */}
-                  <div className="rounded-xl border border-slate-100 bg-slate-50 p-3">
+                  <div className="rounded-md border border-slate-100 bg-slate-50 p-3">
 
                     <div className="flex items-center gap-2">
                       <Users
@@ -620,7 +608,7 @@ function RiskMap() {
                 </div>
 
                 {/* Villages */}
-                <div className="mt-4 flex items-center justify-between rounded-xl bg-slate-50 px-4 py-3">
+                <div className="mt-4 flex items-center justify-between rounded-md bg-slate-50 px-4 py-3">
 
                   <span className="text-xs text-slate-500">
                     Villages potentially affected
@@ -640,7 +628,7 @@ function RiskMap() {
                   {/* Analyze Risk */}
                   <button
                     onClick={handleAnalyzeRisk}
-                    className="flex items-center justify-center gap-2 rounded-xl bg-slate-900 px-3 py-3 text-xs font-semibold text-white transition hover:bg-slate-800"
+                    className="flex items-center justify-center gap-2 rounded-md bg-[#122c47] px-3 py-3 text-xs font-semibold text-white transition hover:bg-[#0c1f33]"
                   >
                     Analyze Risk
                     <ArrowUpRight size={14} />
@@ -648,7 +636,7 @@ function RiskMap() {
 
                   {/* Generate Alert - Step 4 */}
                   <button
-                    className="flex items-center justify-center gap-2 rounded-xl bg-red-500 px-3 py-3 text-xs font-semibold text-white transition hover:bg-red-600"
+                    className="flex items-center justify-center gap-2 rounded-md bg-red-500 px-3 py-3 text-xs font-semibold text-white transition hover:bg-red-600"
                   >
                     Generate Alert
                     <AlertTriangle size={14} />

@@ -72,7 +72,7 @@ function CitizenReports() {
   ).length;
 
   return (
-    <div className="min-h-screen bg-slate-50">
+    <div className="min-h-screen">
       <Sidebar />
 
       <div className="app-main">
@@ -90,7 +90,7 @@ function CitizenReports() {
                 </span>
               </div>
 
-              <h1 className="text-3xl font-bold tracking-tight text-slate-900">
+              <h1 className="text-3xl font-bold tracking-tight text-[#12293f]">
                 Citizen Reports
               </h1>
 
@@ -103,7 +103,7 @@ function CitizenReports() {
             {/* SUBMIT BUTTON */}
             <button
               onClick={() => setShowForm(true)}
-              className="flex items-center justify-center gap-2 rounded-xl bg-slate-900 px-5 py-3 text-sm font-semibold text-white shadow-lg shadow-slate-900/10 transition hover:bg-slate-800"
+              className="flex items-center justify-center gap-2 rounded-md bg-[#122c47] px-5 py-3 text-sm font-semibold text-white shadow-lg shadow-[#122c47]/20 transition hover:bg-[#0c1f33]"
             >
               <Plus size={17} />
               Submit Report
@@ -113,9 +113,9 @@ function CitizenReports() {
           {/* SUMMARY CARDS */}
           <section className="mt-8 grid gap-5 md:grid-cols-3">
             {/* Pending */}
-            <div className="rounded-2xl border border-orange-100 bg-white p-5 shadow-sm">
+            <div className="glass-card p-5">
               <div className="flex items-start justify-between">
-                <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-orange-50">
+                <div className="flex h-11 w-11 items-center justify-center rounded-md bg-orange-50">
                   <Clock3
                     size={21}
                     className="text-orange-500"
@@ -141,9 +141,9 @@ function CitizenReports() {
             </div>
 
             {/* Verified */}
-            <div className="rounded-2xl border border-emerald-100 bg-white p-5 shadow-sm">
+            <div className="glass-card p-5">
               <div className="flex items-start justify-between">
-                <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-emerald-50">
+                <div className="flex h-11 w-11 items-center justify-center rounded-md bg-emerald-50">
                   <ShieldCheck
                     size={21}
                     className="text-emerald-500"
@@ -169,9 +169,9 @@ function CitizenReports() {
             </div>
 
             {/* High severity */}
-            <div className="rounded-2xl border border-red-100 bg-white p-5 shadow-sm">
+            <div className="glass-card p-5">
               <div className="flex items-start justify-between">
-                <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-red-50">
+                <div className="flex h-11 w-11 items-center justify-center rounded-md bg-red-50">
                   <AlertTriangle
                     size={21}
                     className="text-red-500"
@@ -198,7 +198,7 @@ function CitizenReports() {
           </section>
 
           {/* REPORT LIST */}
-          <section className="mt-8 overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
+          <section className="mt-8 overflow-hidden glass-card">
             <div className="flex items-center justify-between border-b border-slate-200 px-6 py-5">
               <div>
                 <h2 className="text-base font-semibold text-slate-900">
@@ -249,7 +249,7 @@ function CitizenReports() {
                       {/* REPORT INFO */}
                       <div className="flex min-w-0 gap-4">
                         <div
-                          className={`flex h-11 w-11 shrink-0 items-center justify-center rounded-xl ${
+                          className={`flex h-11 w-11 shrink-0 items-center justify-center rounded-md ${
                             report.severity === "High"
                               ? "bg-red-50"
                               : report.severity === "Moderate"
@@ -350,9 +350,9 @@ function CitizenReports() {
           </section>
 
           {/* INFORMATION CARD */}
-          <section className="mt-6 rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
+          <section className="mt-6 glass-card p-6">
             <div className="flex items-start gap-4">
-              <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-slate-900">
+              <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-md bg-[#122c47]">
                 <FileWarning
                   size={19}
                   className="text-white"
@@ -380,7 +380,7 @@ function CitizenReports() {
       {/* SUBMIT REPORT MODAL */}
       {showForm && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/50 p-4 backdrop-blur-sm">
-          <div className="w-full max-w-lg rounded-2xl bg-white shadow-2xl">
+          <div className="w-full max-w-lg rounded-2xl border border-white/70 bg-white/70 shadow-2xl backdrop-blur-2xl backdrop-saturate-150">
             {/* MODAL HEADER */}
             <div className="flex items-center justify-between border-b border-slate-200 px-6 py-5">
               <div>
@@ -412,7 +412,7 @@ function CitizenReports() {
                 <select
                   value={type}
                   onChange={(e) => setType(e.target.value)}
-                  className="w-full rounded-xl border border-slate-200 bg-white px-4 py-3 text-sm text-slate-700 outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/10"
+                  className="w-full rounded-md border border-slate-200 bg-white px-4 py-3 text-sm text-slate-700 outline-none focus:border-[#12395e] focus:ring-2 focus:ring-[#12395e]/10"
                 >
                   <option>Road Crack</option>
                   <option>Slope Movement</option>
@@ -435,7 +435,7 @@ function CitizenReports() {
                   value={location}
                   onChange={(e) => setLocation(e.target.value)}
                   placeholder="e.g. East Sikkim"
-                  className="w-full rounded-xl border border-slate-200 bg-white px-4 py-3 text-sm text-slate-700 outline-none placeholder:text-slate-400 focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/10"
+                  className="w-full rounded-md border border-slate-200 bg-white px-4 py-3 text-sm text-slate-700 outline-none placeholder:text-slate-400 focus:border-[#12395e] focus:ring-2 focus:ring-[#12395e]/10"
                 />
               </div>
 
@@ -448,7 +448,7 @@ function CitizenReports() {
                 <select
                   value={severity}
                   onChange={(e) => setSeverity(e.target.value)}
-                  className="w-full rounded-xl border border-slate-200 bg-white px-4 py-3 text-sm text-slate-700 outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/10"
+                  className="w-full rounded-md border border-slate-200 bg-white px-4 py-3 text-sm text-slate-700 outline-none focus:border-[#12395e] focus:ring-2 focus:ring-[#12395e]/10"
                 >
                   <option>Low</option>
                   <option>Moderate</option>
@@ -469,7 +469,7 @@ function CitizenReports() {
                   }
                   rows={4}
                   placeholder="Describe what you observed..."
-                  className="w-full resize-none rounded-xl border border-slate-200 bg-white px-4 py-3 text-sm text-slate-700 outline-none placeholder:text-slate-400 focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/10"
+                  className="w-full resize-none rounded-md border border-slate-200 bg-white px-4 py-3 text-sm text-slate-700 outline-none placeholder:text-slate-400 focus:border-[#12395e] focus:ring-2 focus:ring-[#12395e]/10"
                 />
               </div>
 
@@ -477,7 +477,7 @@ function CitizenReports() {
               <div className="flex gap-3 pt-2">
                 <button
                   onClick={() => setShowForm(false)}
-                  className="flex-1 rounded-xl border border-slate-200 px-4 py-3 text-sm font-semibold text-slate-600 transition hover:bg-slate-50"
+                  className="flex-1 rounded-md border border-slate-200 px-4 py-3 text-sm font-semibold text-slate-600 transition hover:bg-slate-50"
                 >
                   Cancel
                 </button>
@@ -488,7 +488,7 @@ function CitizenReports() {
                     !location.trim() ||
                     !description.trim()
                   }
-                  className="flex-1 rounded-xl bg-slate-900 px-4 py-3 text-sm font-semibold text-white transition hover:bg-slate-800 disabled:cursor-not-allowed disabled:opacity-40"
+                  className="flex-1 rounded-md bg-[#122c47] px-4 py-3 text-sm font-semibold text-white transition hover:bg-[#0c1f33] disabled:cursor-not-allowed disabled:opacity-40"
                 >
                   Submit Report
                 </button>

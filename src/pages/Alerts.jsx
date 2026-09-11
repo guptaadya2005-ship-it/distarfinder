@@ -121,7 +121,7 @@ function Alerts() {
   );
 
   return (
-    <div className="min-h-screen bg-slate-50">
+    <div className="min-h-screen">
       <Sidebar />
 
       <div className="app-main">
@@ -135,12 +135,12 @@ function Alerts() {
           <div className="flex items-start justify-between">
             <div>
               <div className="flex items-center gap-2">
-                <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-red-100">
+                <div className="flex h-10 w-10 items-center justify-center rounded-md bg-red-100">
                   <Bell size={20} className="text-red-600" />
                 </div>
 
                 <div>
-                  <h1 className="text-2xl font-bold text-slate-900">
+                  <h1 className="text-2xl font-bold text-[#12293f]">
                     Emergency Alerts
                   </h1>
 
@@ -153,7 +153,7 @@ function Alerts() {
 
             <button
               onClick={handleGenerateEmergencyAlert}
-              className="flex items-center gap-2 rounded-xl bg-red-600 px-4 py-2.5 text-sm font-semibold text-white shadow-lg shadow-red-600/20 transition hover:bg-red-700"
+              className="flex items-center gap-2 rounded-md bg-red-600 px-4 py-2.5 text-sm font-semibold text-white shadow-lg shadow-red-600/20 transition hover:bg-red-700"
             >
               <Siren size={17} />
               Generate Emergency Alert
@@ -166,9 +166,9 @@ function Alerts() {
 
           <div className="mt-8 grid grid-cols-1 gap-5 md:grid-cols-3">
             {/* Critical */}
-            <div className="rounded-2xl border border-red-200 bg-white p-5 shadow-sm">
+            <div className="glass-card p-5">
               <div className="flex items-center justify-between">
-                <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-red-100">
+                <div className="flex h-11 w-11 items-center justify-center rounded-md bg-red-100">
                   <AlertTriangle
                     size={21}
                     className="text-red-600"
@@ -194,9 +194,9 @@ function Alerts() {
             </div>
 
             {/* High */}
-            <div className="rounded-2xl border border-orange-200 bg-white p-5 shadow-sm">
+            <div className="glass-card p-5">
               <div className="flex items-center justify-between">
-                <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-orange-100">
+                <div className="flex h-11 w-11 items-center justify-center rounded-md bg-orange-100">
                   <ShieldAlert
                     size={21}
                     className="text-orange-600"
@@ -222,9 +222,9 @@ function Alerts() {
             </div>
 
             {/* Acknowledged */}
-            <div className="rounded-2xl border border-emerald-200 bg-white p-5 shadow-sm">
+            <div className="glass-card p-5">
               <div className="flex items-center justify-between">
-                <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-emerald-100">
+                <div className="flex h-11 w-11 items-center justify-center rounded-md bg-emerald-100">
                   <CheckCircle2
                     size={21}
                     className="text-emerald-600"
@@ -254,7 +254,7 @@ function Alerts() {
           {/* Active Alerts */}
           {/* ------------------------------------------------ */}
 
-          <div className="mt-8 rounded-2xl border border-slate-200 bg-white shadow-sm">
+          <div className="mt-8 glass-card">
             <div className="flex items-center justify-between border-b border-slate-200 px-6 py-5">
               <div>
                 <h2 className="text-lg font-bold text-slate-900">
@@ -307,7 +307,7 @@ function Alerts() {
                       <div className="flex items-start gap-4">
                         {/* Icon */}
                         <div
-                          className={`flex h-11 w-11 shrink-0 items-center justify-center rounded-xl ${styles.iconBg}`}
+                          className={`flex h-11 w-11 shrink-0 items-center justify-center rounded-md ${styles.iconBg}`}
                         >
                           <AlertTriangle
                             size={21}
@@ -421,9 +421,9 @@ function Alerts() {
           {/* Information Panel */}
           {/* ------------------------------------------------ */}
 
-          <div className="mt-6 rounded-2xl border border-slate-200 bg-slate-900 p-6 text-white">
+          <div className="mt-6 glass-dark p-6 text-white">
             <div className="flex items-start gap-4">
-              <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-emerald-500/20">
+              <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-md bg-emerald-500/20">
                 <ShieldAlert
                   size={20}
                   className="text-emerald-400"
@@ -454,7 +454,7 @@ function Alerts() {
 
       {selectedAlert && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/50 p-6 backdrop-blur-sm">
-          <div className="w-full max-w-lg overflow-hidden rounded-2xl bg-white shadow-2xl">
+          <div className="w-full max-w-lg overflow-hidden rounded-2xl border border-white/70 bg-white/70 shadow-2xl backdrop-blur-2xl backdrop-saturate-150">
             {/* Modal Header */}
             <div className="flex items-center justify-between border-b border-slate-200 px-6 py-5">
               <div>
@@ -479,7 +479,7 @@ function Alerts() {
             <div className="p-6">
               <div className="flex items-center gap-3">
                 <div
-                  className={`flex h-12 w-12 items-center justify-center rounded-xl ${
+                  className={`flex h-12 w-12 items-center justify-center rounded-md ${
                     getLevelStyles(selectedAlert.level).iconBg
                   }`}
                 >
@@ -508,7 +508,7 @@ function Alerts() {
 
               {/* Metrics */}
               <div className="mt-6 grid grid-cols-2 gap-3">
-                <div className="rounded-xl bg-slate-50 p-4">
+                <div className="rounded-md bg-slate-50 p-4">
                   <p className="text-xs text-slate-400">
                     Risk Probability
                   </p>
@@ -518,7 +518,7 @@ function Alerts() {
                   </p>
                 </div>
 
-                <div className="rounded-xl bg-slate-50 p-4">
+                <div className="rounded-md bg-slate-50 p-4">
                   <p className="text-xs text-slate-400">
                     Population at Risk
                   </p>
@@ -528,7 +528,7 @@ function Alerts() {
                   </p>
                 </div>
 
-                <div className="rounded-xl bg-slate-50 p-4">
+                <div className="rounded-md bg-slate-50 p-4">
                   <p className="text-xs text-slate-400">
                     Villages
                   </p>
@@ -538,7 +538,7 @@ function Alerts() {
                   </p>
                 </div>
 
-                <div className="rounded-xl bg-slate-50 p-4">
+                <div className="rounded-md bg-slate-50 p-4">
                   <p className="text-xs text-slate-400">
                     Status
                   </p>
@@ -557,7 +557,7 @@ function Alerts() {
                       acknowledgeAlert(selectedAlert.id);
                       setSelectedAlert(null);
                     }}
-                    className="flex flex-1 items-center justify-center gap-2 rounded-xl bg-emerald-600 px-4 py-3 text-sm font-semibold text-white transition hover:bg-emerald-700"
+                    className="flex flex-1 items-center justify-center gap-2 rounded-md bg-emerald-600 px-4 py-3 text-sm font-semibold text-white transition hover:bg-emerald-700"
                   >
                     <CheckCircle2 size={16} />
                     Acknowledge Alert
@@ -566,7 +566,7 @@ function Alerts() {
 
                 <button
                   onClick={() => setSelectedAlert(null)}
-                  className="rounded-xl border border-slate-200 px-5 py-3 text-sm font-semibold text-slate-600 transition hover:bg-slate-50"
+                  className="rounded-md border border-slate-200 px-5 py-3 text-sm font-semibold text-slate-600 transition hover:bg-slate-50"
                 >
                   Close
                 </button>

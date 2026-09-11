@@ -1,13 +1,21 @@
+/* ========================================
+   FONTS — formal serif for headings,
+   Inter for body copy (classical institutional pairing)
+======================================== */
+@import url("https://fonts.googleapis.com/css2?family=Merriweather:wght@700;900&family=Inter:wght@400;500;600;700;800&display=swap");
+
 @import "tailwindcss";
 
 /* ========================================
    GLOBAL RESET & BASE
 ======================================== */
 
-* {
-  margin: 0;
-  padding: 0;
-  box-sizing: border-box;
+@layer base {
+  * {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+  }
 }
 
 html,
@@ -20,9 +28,21 @@ body,
 body {
   font-family: Inter, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI",
     sans-serif;
-  background: #f8fafc;
-  color: #0f172a;
+  color: #101828;
   -webkit-font-smoothing: antialiased;
+
+  /* Soft ambient backdrop so glass panels have depth to catch */
+  background-color: #eae7dc;
+  background-image: radial-gradient(
+      circle at 12% 15%,
+      rgba(184, 134, 46, 0.14),
+      transparent 42%
+    ),
+    radial-gradient(circle at 88% 10%, rgba(18, 41, 63, 0.16), transparent 45%),
+    radial-gradient(circle at 75% 85%, rgba(122, 31, 31, 0.08), transparent 40%),
+    radial-gradient(circle at 20% 90%, rgba(18, 41, 63, 0.1), transparent 40%);
+  background-attachment: fixed;
+  background-size: cover;
 }
 
 button {
@@ -34,27 +54,42 @@ button:disabled {
   cursor: not-allowed;
 }
 
+/* Formal serif treatment for headings across the whole app */
+h1,
+h2,
+h3 {
+  font-family: "Merriweather", Georgia, "Times New Roman", serif;
+  letter-spacing: -0.01em;
+}
+
+/* ========================================
+   INSTITUTIONAL COLOR TOKENS
+======================================== */
+:root {
+  --sidebar-width: 280px;
+  --navy: #12293f;
+  --navy-deep: #0b1c2c;
+  --navy-mid: #1c3d5a;
+  --gold: #b8862e;
+  --gold-light: #d9a94a;
+  --maroon: #7a1f1f;
+  --paper: #f3f1eb;
+}
+
 /* ========================================
    TERRAGUARD APP LAYOUT
 ======================================== */
 
-/* Sidebar width increased to 288px (w-72) for spacious layout */
-:root {
-  --sidebar-width: 288px;
-}
-
-aside {
-  width: var(--sidebar-width) !important;
-  min-width: var(--sidebar-width) !important;
-}
-
-/* Ensures page content is never covered */
+/* Sidebar now floats (left-4, w-64) instead of sitting flush left,
+   so the main content offset accounts for its left gap + width + a gap. */
 .app-main {
-  margin-left: var(--sidebar-width) !important;
-  width: calc(100% - var(--sidebar-width)) !important;
+  margin-left: 288px !important;
+  width: calc(100% - 288px) !important;
+  max-width: calc(100% - 288px) !important;
   min-height: 100vh;
-  padding: 2rem 2.5rem;
-  overflow-x: hidden;
+  padding: 0;
+  overflow-x: auto;
+  box-sizing: border-box;
 }
 
 /* ========================================
@@ -65,12 +100,11 @@ aside {
   .app-main {
     margin-left: 0 !important;
     width: 100% !important;
-    padding: 1.25rem;
   }
 }
 
 /* ========================================
-   VERTICAL SCROLLBAR (MATCHING SCREENSHOT)
+   VERTICAL SCROLLBAR
 ======================================== */
 
 ::-webkit-scrollbar {
@@ -78,20 +112,20 @@ aside {
 }
 
 ::-webkit-scrollbar-track {
-  background: #f8fafc;
+  background: var(--paper);
 }
 
 ::-webkit-scrollbar-thumb {
-  background: #94a3b8;
+  background: #a8a196;
   border-radius: 4px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: #64748b;
+  background: #8a8377;
 }
 
 /* ========================================
-   TERRAGUARD UI POLISH
+   UI POLISH
 ======================================== */
 
 @keyframes fadeIn {
@@ -111,12 +145,12 @@ aside {
     opacity: 1;
   }
   50% {
-    opacity: 0.35;
+    opacity: 0.4;
   }
 }
 
 .page-enter {
-  animation: fadeIn 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+  animation: fadeIn 0.3s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 .live-dot {
@@ -127,24 +161,51 @@ aside {
   animation: pulseSoft 1.8s ease-in-out infinite;
 }
 
-/* Polish cards to blend with light enterprise dashboard */
+/* ========================================
+   GLASSMORPHISM CARDS
+======================================== */
+
+.glass-card {
+  background: rgba(255, 255, 255, 0.5);
+  backdrop-filter: blur(20px) saturate(160%);
+  -webkit-backdrop-filter: blur(20px) saturate(160%);
+  border: 1px solid rgba(255, 255, 255, 0.65);
+  border-radius: 1rem;
+  box-shadow: 0 8px 28px -6px rgba(18, 41, 63, 0.12);
+  transition: box-shadow 0.2s ease, transform 0.2s ease;
+}
+
+.glass-card:hover {
+  box-shadow: 0 12px 34px -6px rgba(18, 41, 63, 0.16);
+}
+
+/* Dark variant, used over the navy map / hero surfaces */
+.glass-dark {
+  background: rgba(15, 35, 56, 0.55);
+  backdrop-filter: blur(20px) saturate(160%);
+  -webkit-backdrop-filter: blur(20px) saturate(160%);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 1rem;
+}
+
+/* Legacy aliases kept for any remaining usages */
 .card,
 .stat-card {
-  background: #ffffff;
-  border: 1px solid #e2e8f0;
-  border-radius: 0.75rem;
+  background: rgba(255, 255, 255, 0.5);
+  backdrop-filter: blur(20px) saturate(160%);
+  -webkit-backdrop-filter: blur(20px) saturate(160%);
+  border: 1px solid rgba(255, 255, 255, 0.65);
+  border-radius: 1rem;
   padding: 1.5rem;
-  box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.04);
-  transition: transform 0.2s ease, box-shadow 0.2s ease;
+  box-shadow: 0 8px 28px -6px rgba(18, 41, 63, 0.12);
 }
 
 .card-hover:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 4px 10px -2px rgba(0, 0, 0, 0.08);
+  box-shadow: 0 12px 34px -6px rgba(18, 41, 63, 0.16);
 }
 
 ::selection {
-  background: #10b981;
+  background: var(--gold);
   color: white;
 }
 
@@ -153,6 +214,28 @@ aside {
   display: flex;
   flex-direction: column;
   gap: 1.5rem;
-  max-width: 1400px;
+  max-width: 1440px;
+  width: 100%;
   margin: 0 auto;
+  box-sizing: border-box;
+}
+
+/* Thin tri-tone institutional ribbon used at the very top of the app */
+.gov-ribbon {
+  height: 4px;
+  width: 100%;
+  background: linear-gradient(
+    90deg,
+    var(--navy) 0%,
+    var(--navy) 33%,
+    var(--gold) 33%,
+    var(--gold) 66%,
+    var(--maroon) 66%,
+    var(--maroon) 100%
+  );
+}
+
+/* Official emblem seal ring */
+.seal-ring {
+  box-shadow: 0 0 0 2px rgba(184, 134, 46, 0.35);
 }

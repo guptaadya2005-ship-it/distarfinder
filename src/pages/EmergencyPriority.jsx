@@ -149,7 +149,7 @@ function EmergencyPriority() {
   ).length;
 
   return (
-    <div className="min-h-screen bg-slate-50">
+    <div className="min-h-screen">
       {/* --------------------------------------------------
           SIDEBAR
       -------------------------------------------------- */}
@@ -180,7 +180,7 @@ function EmergencyPriority() {
                 </span>
               </div>
 
-              <h1 className="text-2xl font-bold text-slate-900">
+              <h1 className="text-2xl font-bold text-[#12293f]">
                 Emergency Priority
               </h1>
 
@@ -202,7 +202,7 @@ function EmergencyPriority() {
           <div className="mb-6 grid grid-cols-1 gap-4 md:grid-cols-3">
             {/* Critical Incidents */}
 
-            <div className="rounded-2xl border border-red-100 bg-white p-5 shadow-sm">
+            <div className="glass-card p-5">
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-sm font-medium text-slate-500">
@@ -214,7 +214,7 @@ function EmergencyPriority() {
                   </p>
                 </div>
 
-                <div className="rounded-xl bg-red-50 p-3 text-red-600">
+                <div className="rounded-md bg-red-50 p-3 text-red-600">
                   <AlertTriangle size={22} />
                 </div>
               </div>
@@ -222,7 +222,7 @@ function EmergencyPriority() {
 
             {/* Population Exposed */}
 
-            <div className="rounded-2xl border border-orange-100 bg-white p-5 shadow-sm">
+            <div className="glass-card p-5">
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-sm font-medium text-slate-500">
@@ -234,7 +234,7 @@ function EmergencyPriority() {
                   </p>
                 </div>
 
-                <div className="rounded-xl bg-orange-50 p-3 text-orange-600">
+                <div className="rounded-md bg-orange-50 p-3 text-orange-600">
                   <Users size={22} />
                 </div>
               </div>
@@ -242,7 +242,7 @@ function EmergencyPriority() {
 
             {/* Active Responses */}
 
-            <div className="rounded-2xl border border-emerald-100 bg-white p-5 shadow-sm">
+            <div className="glass-card p-5">
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-sm font-medium text-slate-500">
@@ -254,7 +254,7 @@ function EmergencyPriority() {
                   </p>
                 </div>
 
-                <div className="rounded-xl bg-emerald-50 p-3 text-emerald-600">
+                <div className="rounded-md bg-emerald-50 p-3 text-emerald-600">
                   <Radio size={22} />
                 </div>
               </div>
@@ -271,7 +271,7 @@ function EmergencyPriority() {
             -------------------------------------------------- */}
 
             <div className="xl:col-span-2">
-              <div className="rounded-2xl border border-slate-200 bg-white shadow-sm">
+              <div className="glass-card">
                 <div className="border-b border-slate-200 p-5">
                   <div className="flex items-center justify-between">
                     <div>
@@ -328,7 +328,7 @@ function EmergencyPriority() {
                             {/* Rank */}
 
                             <div
-                              className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-xl text-sm font-bold ${
+                              className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-md text-sm font-bold ${
                                 incident.level === "Critical"
                                   ? "bg-red-100 text-red-700"
                                   : incident.level === "High"
@@ -423,7 +423,7 @@ function EmergencyPriority() {
             -------------------------------------------------- */}
 
             <div>
-              <div className="rounded-2xl border border-slate-200 bg-white shadow-sm">
+              <div className="glass-card">
                 <div className="border-b border-slate-200 p-5">
                   <h2 className="text-lg font-bold text-slate-900">
                     Incident Details
@@ -472,7 +472,7 @@ function EmergencyPriority() {
 
                     {/* Risk Score */}
 
-                    <div className="mb-5 rounded-2xl bg-red-50 p-4">
+                    <div className="mb-5 rounded-lg bg-red-50 p-4">
                       <div className="flex items-center justify-between">
                         <div>
                           <p className="text-xs font-semibold uppercase tracking-wide text-red-500">
@@ -553,7 +553,7 @@ function EmergencyPriority() {
 
                     {/* Recommended Response */}
 
-                    <div className="mb-5 rounded-xl border border-orange-100 bg-orange-50 p-4">
+                    <div className="mb-5 rounded-md border border-orange-100 bg-orange-50 p-4">
                       <div className="mb-2 flex items-center gap-2">
                         <AlertTriangle
                           size={17}
@@ -572,7 +572,7 @@ function EmergencyPriority() {
 
                     {/* Response Time */}
 
-                    <div className="mb-5 flex items-center justify-between rounded-xl bg-slate-50 p-4">
+                    <div className="mb-5 flex items-center justify-between rounded-md bg-slate-50 p-4">
                       <div className="flex items-center gap-2">
                         <Clock3
                           size={17}
@@ -598,7 +598,7 @@ function EmergencyPriority() {
                       disabled={isResponseDispatched(
                         selectedIncident.id
                       )}
-                      className={`flex w-full items-center justify-center gap-2 rounded-xl px-4 py-3 text-sm font-semibold transition ${
+                      className={`flex w-full items-center justify-center gap-2 rounded-md px-4 py-3 text-sm font-semibold transition ${
                         isResponseDispatched(selectedIncident.id)
                           ? "bg-emerald-100 text-emerald-700"
                           : "bg-red-500 text-white shadow-lg shadow-red-500/20 hover:bg-red-600"
@@ -626,9 +626,9 @@ function EmergencyPriority() {
               HOW PRIORITY IS CALCULATED
           -------------------------------------------------- */}
 
-          <div className="mt-6 rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
+          <div className="mt-6 glass-card p-5">
             <div className="flex items-start gap-3">
-              <div className="rounded-xl bg-blue-50 p-3 text-blue-600">
+              <div className="rounded-md bg-blue-50 p-3 text-blue-600">
                 <ShieldAlert size={20} />
               </div>
 
