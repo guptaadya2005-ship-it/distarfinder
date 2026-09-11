@@ -1,5 +1,9 @@
 @import "tailwindcss";
 
+/* ========================================
+   GLOBAL RESET
+======================================== */
+
 * {
   margin: 0;
   padding: 0;
@@ -22,7 +26,46 @@ body {
 
 button {
   font-family: inherit;
+  cursor: pointer;
 }
+
+button:disabled {
+  cursor: not-allowed;
+}
+
+/* ========================================
+   TERRAGUARD APP LAYOUT
+======================================== */
+
+/*
+  Sidebar width = 256px (w-64)
+
+  Main content starts after the sidebar.
+  This prevents the fixed sidebar from covering
+  the page content.
+*/
+
+.app-main {
+  margin-left: 256px;
+  min-height: 100vh;
+  width: calc(100% - 256px);
+  overflow-x: hidden;
+}
+
+/* ========================================
+   RESPONSIVE LAYOUT
+======================================== */
+
+@media (max-width: 1023px) {
+  .app-main {
+    margin-left: 0;
+    width: 100%;
+  }
+}
+
+/* ========================================
+   SCROLLBAR
+======================================== */
 
 ::-webkit-scrollbar {
   width: 6px;
@@ -37,9 +80,9 @@ button {
   border-radius: 10px;
 }
 
-/* ================================
-   TerraGuard UI Polish
-================================ */
+/* ========================================
+   TERRAGUARD UI POLISH
+======================================== */
 
 @keyframes fadeIn {
   from {
@@ -81,14 +124,6 @@ button {
 
 .card-hover:hover {
   transform: translateY(-2px);
-}
-
-button {
-  cursor: pointer;
-}
-
-button:disabled {
-  cursor: not-allowed;
 }
 
 input,

@@ -124,7 +124,7 @@ function Alerts() {
     <div className="min-h-screen bg-slate-50">
       <Sidebar />
 
-      <div className="ml-[280px] min-h-screen">
+      <div className="app-main">
         <Navbar />
 
         <main className="p-8">
