@@ -147,3 +147,12 @@ aside {
   background: #10b981;
   color: white;
 }
+
+/* Standard spacing between sections on pages */
+.page-container {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+  max-width: 1400px;
+  margin: 0 auto;
+}

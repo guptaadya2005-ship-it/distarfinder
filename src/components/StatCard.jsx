@@ -3,41 +3,48 @@ function StatCard({
   value,
   description,
   icon: Icon,
-  iconBg,
-  iconColor,
+  iconBg = "bg-slate-50",
+  iconColor = "text-slate-600",
   status,
+  trend,
 }) {
   return (
-    <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm transition hover:-translate-y-0.5 hover:shadow-md">
+    <div className="flex flex-col justify-between rounded-xl border border-slate-200/90 bg-white p-5 shadow-[0_1px_3px_rgba(0,0,0,0.04)] transition-all duration-200 hover:-translate-y-0.5 hover:shadow-md">
+      
+      {/* Top Header: Title + Icon Badge */}
+      <div className="flex items-center justify-between gap-2">
+        <span className="text-xs font-semibold uppercase tracking-wider text-slate-500">
+          {title}
+        </span>
 
-      <div className="flex items-start justify-between">
+        {Icon && (
+          <div
+            className={`flex h-9 w-9 items-center justify-center rounded-lg ${iconBg}`}
+          >
+            <Icon size={18} className={iconColor} />
+          </div>
+        )}
+      </div>
 
-        <div
-          className={`flex h-11 w-11 items-center justify-center rounded-xl ${iconBg}`}
-        >
-          <Icon size={21} className={iconColor} />
-        </div>
+      {/* Center Value */}
+      <div className="my-3 flex items-baseline gap-2.5">
+        <h3 className="text-2xl font-bold tracking-tight text-slate-900">
+          {value}
+        </h3>
 
         {status && (
-          <span className="rounded-full bg-slate-100 px-2.5 py-1 text-[10px] font-semibold text-slate-500">
+          <span className="inline-flex items-center rounded-md bg-rose-50 px-2 py-0.5 text-[11px] font-semibold text-rose-600 ring-1 ring-inset ring-rose-500/20">
             {status}
           </span>
         )}
-
       </div>
 
-      <p className="mt-5 text-sm font-medium text-slate-500">
-        {title}
-      </p>
-
-      <h3 className="mt-1 text-3xl font-bold tracking-tight text-slate-900">
-        {value}
-      </h3>
-
-      <p className="mt-2 text-xs text-slate-400">
-        {description}
-      </p>
-
+      {/* Bottom Subtext */}
+      {description && (
+        <p className="text-xs font-normal text-slate-400">
+          {description}
+        </p>
+      )}
     </div>
   );
 }
