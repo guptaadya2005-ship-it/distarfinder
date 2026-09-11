@@ -1,140 +1,93 @@
 import { useState } from "react";
-import { useNavigate } from "react-router-dom";
 import {
   FileWarning,
   MapPin,
   Clock3,
-  User,
-  Send,
   CheckCircle2,
   AlertTriangle,
-  Camera,
+  Plus,
+  X,
+  ShieldCheck,
+  UserRound,
 } from "lucide-react";
 
 import Sidebar from "../components/Sidebar";
 import Navbar from "../components/Navbar";
-
-const initialReports = [
-  {
-    id: 1,
-    type: "Road Crack",
-    location: "East Sikkim, Sikkim",
-    description:
-      "Large cracks observed near the mountain road. Vehicles are moving slowly.",
-    reporter: "Field Officer",
-    severity: "High",
-    status: "Pending",
-    time: "8 min ago",
-  },
-  {
-    id: 2,
-    type: "Waterlogging",
-    location: "Dima Hasao, Assam",
-    description:
-      "Heavy rainfall has caused water accumulation near residential areas.",
-    reporter: "Citizen",
-    severity: "Moderate",
-    status: "Verified",
-    time: "24 min ago",
-  },
-  {
-    id: 3,
-    type: "Slope Movement",
-    location: "West Kameng, Arunachal Pradesh",
-    description:
-      "Small rocks and soil are falling from the upper slope near the road.",
-    reporter: "Field Officer",
-    severity: "High",
-    status: "Pending",
-    time: "42 min ago",
-  },
-];
+import { useTerraGuard } from "../context/TerraGuardContext";
 
 function CitizenReports() {
-  const navigate = useNavigate();
-  const [reports, setReports] = useState(initialReports);
+  // Shared reports from TerraGuard Context
+  const {
+    reports,
+    addReport,
+    verifyReport,
+  } = useTerraGuard();
 
+  // Form state
   const [showForm, setShowForm] = useState(false);
 
   const [type, setType] = useState("Road Crack");
-  const [location, setLocation] = useState("East Sikkim, Sikkim");
+  const [location, setLocation] = useState("");
   const [severity, setSeverity] = useState("High");
   const [description, setDescription] = useState("");
 
-  const submitReport = (event) => {
-    event.preventDefault();
-
-    if (!description.trim()) {
+  // Submit a new report
+  const submitReport = () => {
+    if (!location.trim() || !description.trim()) {
       return;
     }
 
     const newReport = {
-      id: Date.now(),
       type,
-      location,
-      description,
-      reporter: "Citizen Reporter",
+      location: location.trim(),
       severity,
+      description: description.trim(),
       status: "Pending",
-      time: "Just now",
+      source: "Citizen",
+      createdAt: "Just now",
     };
 
-    setReports((currentReports) => [
-      newReport,
-      ...currentReports,
-    ]);
+    // Save report to shared TerraGuard Context
+    addReport(newReport);
 
+    // Reset form
+    setType("Road Crack");
+    setLocation("");
+    setSeverity("High");
     setDescription("");
     setShowForm(false);
-    navigate("/emergency-priority");
   };
 
-  const verifyReport = (id) => {
-    setReports((currentReports) =>
-      currentReports.map((report) =>
-        report.id === id
-          ? { ...report, status: "Verified" }
-          : report
-      )
-    );
-  };
-
-  const pendingCount = reports.filter(
+  // Statistics
+  const pendingReports = reports.filter(
     (report) => report.status === "Pending"
   ).length;
 
-  const verifiedCount = reports.filter(
+  const verifiedReports = reports.filter(
     (report) => report.status === "Verified"
   ).length;
 
-  const highCount = reports.filter(
+  const highSeverityReports = reports.filter(
     (report) => report.severity === "High"
   ).length;
 
   return (
     <div className="min-h-screen bg-slate-50">
-
       <Sidebar />
 
       <div className="ml-64">
-
         <Navbar />
 
-        <main className="page-enter p-8">
-
-          {/* Header */}
-          <div className="mb-8 flex flex-col justify-between gap-5 lg:flex-row lg:items-end">
-
+        <main className="p-8">
+          {/* PAGE HEADER */}
+          <div className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
             <div>
-
               <div className="mb-2 flex items-center gap-2">
+                <span className="h-2 w-2 rounded-full bg-orange-500"></span>
 
-                <span className="h-2 w-2 rounded-full bg-blue-500"></span>
-
-                <span className="text-xs font-semibold uppercase tracking-widest text-blue-600">
+                <span className="text-xs font-semibold uppercase tracking-widest text-orange-500">
                   Community Intelligence
                 </span>
-
               </div>
 
               <h1 className="text-3xl font-bold tracking-tight text-slate-900">
@@ -142,265 +95,324 @@ function CitizenReports() {
               </h1>
 
               <p className="mt-2 max-w-2xl text-sm text-slate-500">
-                Collect real-world observations from citizens and field
-                officers to improve disaster awareness and response.
+                Real-time reports from citizens and field officers help
+                TerraGuard identify developing hazards on the ground.
               </p>
-
             </div>
 
+            {/* SUBMIT BUTTON */}
             <button
               onClick={() => setShowForm(true)}
-              className="flex items-center justify-center gap-2 rounded-xl bg-slate-950 px-5 py-3 text-sm font-semibold text-white transition hover:bg-slate-800"
+              className="flex items-center justify-center gap-2 rounded-xl bg-slate-900 px-5 py-3 text-sm font-semibold text-white shadow-lg shadow-slate-900/10 transition hover:bg-slate-800"
             >
-              <Send size={17} />
-              Submit New Report
+              <Plus size={17} />
+              Submit Report
             </button>
-
           </div>
 
-          {/* Stats */}
-          <div className="grid gap-4 md:grid-cols-3">
+          {/* SUMMARY CARDS */}
+          <section className="mt-8 grid gap-5 md:grid-cols-3">
+            {/* Pending */}
+            <div className="rounded-2xl border border-orange-100 bg-white p-5 shadow-sm">
+              <div className="flex items-start justify-between">
+                <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-orange-50">
+                  <Clock3
+                    size={21}
+                    className="text-orange-500"
+                  />
+                </div>
 
-            <div className="rounded-2xl border border-yellow-100 bg-white p-5 shadow-sm">
-
-              <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-yellow-50">
-                <FileWarning
-                  size={21}
-                  className="text-yellow-600"
-                />
+                <span className="rounded-full bg-orange-50 px-2.5 py-1 text-[10px] font-semibold text-orange-600">
+                  Review
+                </span>
               </div>
 
-              <p className="mt-5 text-sm text-slate-500">
+              <p className="mt-5 text-sm font-medium text-slate-500">
                 Pending Reports
               </p>
 
               <h2 className="mt-1 text-3xl font-bold text-slate-900">
-                {pendingCount}
+                {pendingReports}
               </h2>
 
+              <p className="mt-2 text-xs text-slate-400">
+                Reports waiting for verification
+              </p>
             </div>
 
+            {/* Verified */}
             <div className="rounded-2xl border border-emerald-100 bg-white p-5 shadow-sm">
+              <div className="flex items-start justify-between">
+                <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-emerald-50">
+                  <ShieldCheck
+                    size={21}
+                    className="text-emerald-500"
+                  />
+                </div>
 
-              <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-emerald-50">
-                <CheckCircle2
-                  size={21}
-                  className="text-emerald-600"
-                />
+                <span className="rounded-full bg-emerald-50 px-2.5 py-1 text-[10px] font-semibold text-emerald-600">
+                  Verified
+                </span>
               </div>
 
-              <p className="mt-5 text-sm text-slate-500">
+              <p className="mt-5 text-sm font-medium text-slate-500">
                 Verified Reports
               </p>
 
               <h2 className="mt-1 text-3xl font-bold text-slate-900">
-                {verifiedCount}
+                {verifiedReports}
               </h2>
 
+              <p className="mt-2 text-xs text-slate-400">
+                Confirmed ground-level observations
+              </p>
             </div>
 
+            {/* High severity */}
             <div className="rounded-2xl border border-red-100 bg-white p-5 shadow-sm">
+              <div className="flex items-start justify-between">
+                <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-red-50">
+                  <AlertTriangle
+                    size={21}
+                    className="text-red-500"
+                  />
+                </div>
 
-              <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-red-50">
-                <AlertTriangle
-                  size={21}
-                  className="text-red-500"
-                />
+                <span className="rounded-full bg-red-50 px-2.5 py-1 text-[10px] font-semibold text-red-600">
+                  High Severity
+                </span>
               </div>
 
-              <p className="mt-5 text-sm text-slate-500">
+              <p className="mt-5 text-sm font-medium text-slate-500">
                 High Severity Reports
               </p>
 
               <h2 className="mt-1 text-3xl font-bold text-slate-900">
-                {highCount}
+                {highSeverityReports}
               </h2>
 
-            </div>
-
-          </div>
-
-          {/* Reports */}
-          <div className="mt-7 rounded-2xl border border-slate-200 bg-white shadow-sm">
-
-            <div className="border-b border-slate-200 px-6 py-5">
-
-              <h2 className="font-semibold text-slate-900">
-                Incoming Reports
-              </h2>
-
-              <p className="mt-1 text-xs text-slate-500">
-                Observations submitted by citizens and field teams
+              <p className="mt-2 text-xs text-slate-400">
+                Reports requiring urgent attention
               </p>
+            </div>
+          </section>
 
+          {/* REPORT LIST */}
+          <section className="mt-8 overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
+            <div className="flex items-center justify-between border-b border-slate-200 px-6 py-5">
+              <div>
+                <h2 className="text-base font-semibold text-slate-900">
+                  Ground Reports
+                </h2>
+
+                <p className="mt-1 text-xs text-slate-500">
+                  Recent observations from the field
+                </p>
+              </div>
+
+              <div className="flex items-center gap-2 rounded-lg bg-slate-50 px-3 py-2">
+                <FileWarning
+                  size={15}
+                  className="text-slate-500"
+                />
+
+                <span className="text-xs font-medium text-slate-600">
+                  {reports.length} reports
+                </span>
+              </div>
             </div>
 
             <div className="divide-y divide-slate-100">
+              {reports.length === 0 ? (
+                <div className="px-6 py-16 text-center">
+                  <FileWarning
+                    size={38}
+                    className="mx-auto text-slate-300"
+                  />
 
-              {reports.map((report) => {
+                  <h3 className="mt-4 text-sm font-semibold text-slate-800">
+                    No reports yet
+                  </h3>
 
-                const severityClass =
-                  report.severity === "High"
-                    ? "bg-red-50 text-red-600"
-                    : report.severity === "Moderate"
-                    ? "bg-yellow-50 text-yellow-600"
-                    : "bg-emerald-50 text-emerald-600";
-
-                const statusClass =
-                  report.status === "Verified"
-                    ? "bg-emerald-50 text-emerald-600"
-                    : "bg-yellow-50 text-yellow-600";
-
-                return (
+                  <p className="mt-1 text-xs text-slate-400">
+                    Submit a ground report to help monitor developing
+                    hazards.
+                  </p>
+                </div>
+              ) : (
+                reports.map((report) => (
                   <div
                     key={report.id}
-                    className="px-6 py-5"
+                    className="px-6 py-5 transition hover:bg-slate-50"
                   >
-
-                    <div className="flex flex-col gap-5 xl:flex-row xl:items-center xl:justify-between">
-
-                      <div className="flex gap-4">
-
-                        <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-blue-50">
+                    <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
+                      {/* REPORT INFO */}
+                      <div className="flex min-w-0 gap-4">
+                        <div
+                          className={`flex h-11 w-11 shrink-0 items-center justify-center rounded-xl ${
+                            report.severity === "High"
+                              ? "bg-red-50"
+                              : report.severity === "Moderate"
+                                ? "bg-orange-50"
+                                : "bg-emerald-50"
+                          }`}
+                        >
                           <FileWarning
                             size={20}
-                            className="text-blue-600"
+                            className={
+                              report.severity === "High"
+                                ? "text-red-500"
+                                : report.severity === "Moderate"
+                                  ? "text-orange-500"
+                                  : "text-emerald-500"
+                            }
                           />
                         </div>
 
-                        <div>
-
+                        <div className="min-w-0">
                           <div className="flex flex-wrap items-center gap-2">
-
-                            <h3 className="font-semibold text-slate-900">
+                            <h3 className="text-sm font-semibold text-slate-900">
                               {report.type}
                             </h3>
 
                             <span
-                              className={`rounded-full px-2.5 py-1 text-[10px] font-bold uppercase ${severityClass}`}
+                              className={`rounded-full px-2 py-1 text-[10px] font-bold ${
+                                report.severity === "High"
+                                  ? "bg-red-50 text-red-600"
+                                  : report.severity === "Moderate"
+                                    ? "bg-orange-50 text-orange-600"
+                                    : "bg-emerald-50 text-emerald-600"
+                              }`}
                             >
                               {report.severity}
                             </span>
 
                             <span
-                              className={`rounded-full px-2.5 py-1 text-[10px] font-bold uppercase ${statusClass}`}
+                              className={`rounded-full px-2 py-1 text-[10px] font-bold ${
+                                report.status === "Verified"
+                                  ? "bg-emerald-50 text-emerald-600"
+                                  : "bg-yellow-50 text-yellow-700"
+                              }`}
                             >
                               {report.status}
                             </span>
-
                           </div>
 
-                          <div className="mt-2 flex flex-wrap gap-x-4 gap-y-2 text-xs text-slate-500">
-
-                            <span className="flex items-center gap-1.5">
-                              <MapPin size={14} />
+                          <div className="mt-2 flex flex-wrap items-center gap-4">
+                            <div className="flex items-center gap-1.5 text-xs text-slate-500">
+                              <MapPin size={13} />
                               {report.location}
-                            </span>
+                            </div>
 
-                            <span className="flex items-center gap-1.5">
-                              <User size={14} />
-                              {report.reporter}
-                            </span>
+                            <div className="flex items-center gap-1.5 text-xs text-slate-500">
+                              <UserRound size={13} />
+                              {report.source || "Citizen"}
+                            </div>
 
-                            <span className="flex items-center gap-1.5">
-                              <Clock3 size={14} />
-                              {report.time}
-                            </span>
-
+                            <div className="flex items-center gap-1.5 text-xs text-slate-400">
+                              <Clock3 size={13} />
+                              {report.createdAt || "Recently"}
+                            </div>
                           </div>
 
-                          <p className="mt-3 max-w-3xl text-xs leading-relaxed text-slate-500">
-                            {report.description}
-                          </p>
-
+                          {report.description && (
+                            <p className="mt-3 max-w-2xl text-xs leading-relaxed text-slate-500">
+                              {report.description}
+                            </p>
+                          )}
                         </div>
-
                       </div>
 
-                      <div className="flex items-center gap-3">
-
-                        <button
-                          className="flex items-center gap-2 rounded-lg border border-slate-200 px-4 py-2.5 text-xs font-semibold text-slate-600 transition hover:bg-slate-50"
-                        >
-                          <Camera size={15} />
-                          Evidence
-                        </button>
-
-                        {report.status === "Pending" && (
+                      {/* ACTION */}
+                      <div className="flex shrink-0 items-center gap-2">
+                        {report.status === "Pending" ? (
                           <button
                             onClick={() =>
                               verifyReport(report.id)
                             }
-                            className="flex items-center gap-2 rounded-lg bg-emerald-500 px-4 py-2.5 text-xs font-semibold text-white transition hover:bg-emerald-600"
+                            className="flex items-center gap-2 rounded-lg bg-emerald-50 px-3 py-2 text-xs font-semibold text-emerald-700 transition hover:bg-emerald-100"
                           >
-                            <CheckCircle2 size={15} />
+                            <CheckCircle2 size={14} />
                             Verify
                           </button>
+                        ) : (
+                          <div className="flex items-center gap-1.5 rounded-lg bg-emerald-50 px-3 py-2 text-xs font-semibold text-emerald-700">
+                            <CheckCircle2 size={14} />
+                            Verified
+                          </div>
                         )}
-
                       </div>
-
                     </div>
-
                   </div>
-                );
-              })}
-
+                ))
+              )}
             </div>
+          </section>
 
-          </div>
-
-        </main>
-
-      </div>
-
-      {/* Submit Report Modal */}
-      {showForm && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/40 p-6 backdrop-blur-sm">
-
-          <div className="w-full max-w-xl rounded-2xl bg-white shadow-2xl">
-
-            <div className="flex items-center justify-between border-b border-slate-200 px-6 py-5">
+          {/* INFORMATION CARD */}
+          <section className="mt-6 rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
+            <div className="flex items-start gap-4">
+              <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-slate-900">
+                <FileWarning
+                  size={19}
+                  className="text-white"
+                />
+              </div>
 
               <div>
+                <h3 className="text-sm font-semibold text-slate-900">
+                  Why citizen reports matter
+                </h3>
 
-                <p className="text-[10px] font-semibold uppercase tracking-widest text-blue-600">
-                  Community Report
+                <p className="mt-2 max-w-4xl text-xs leading-relaxed text-slate-500">
+                  Ground-level observations provide valuable information
+                  that may not immediately appear in satellite, rainfall,
+                  or sensor data. TerraGuard combines these reports with
+                  predicted risk to help emergency teams understand
+                  developing situations and prioritise their response.
                 </p>
+              </div>
+            </div>
+          </section>
+        </main>
+      </div>
 
-                <h2 className="mt-1 text-lg font-bold text-slate-900">
-                  Submit Disaster Observation
+      {/* SUBMIT REPORT MODAL */}
+      {showForm && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/50 p-4 backdrop-blur-sm">
+          <div className="w-full max-w-lg rounded-2xl bg-white shadow-2xl">
+            {/* MODAL HEADER */}
+            <div className="flex items-center justify-between border-b border-slate-200 px-6 py-5">
+              <div>
+                <h2 className="text-lg font-semibold text-slate-900">
+                  Submit Ground Report
                 </h2>
 
+                <p className="mt-1 text-xs text-slate-500">
+                  Report a hazard observed in your area.
+                </p>
               </div>
 
               <button
                 onClick={() => setShowForm(false)}
-                className="rounded-lg p-2 text-slate-400 hover:bg-slate-100"
+                className="flex h-9 w-9 items-center justify-center rounded-lg text-slate-400 transition hover:bg-slate-100 hover:text-slate-700"
               >
-                ×
+                <X size={18} />
               </button>
-
             </div>
 
-            <form
-              onSubmit={submitReport}
-              className="space-y-5 p-6"
-            >
-
-              {/* Report Type */}
+            {/* FORM */}
+            <div className="space-y-5 p-6">
+              {/* TYPE */}
               <div>
-
                 <label className="mb-2 block text-xs font-semibold text-slate-700">
                   Report Type
                 </label>
 
                 <select
                   value={type}
-                  onChange={(event) =>
-                    setType(event.target.value)
-                  }
-                  className="w-full rounded-xl border border-slate-200 bg-white px-4 py-3 text-sm outline-none focus:border-blue-400 focus:ring-2 focus:ring-blue-100"
+                  onChange={(e) => setType(e.target.value)}
+                  className="w-full rounded-xl border border-slate-200 bg-white px-4 py-3 text-sm text-slate-700 outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/10"
                 >
                   <option>Road Crack</option>
                   <option>Slope Movement</option>
@@ -410,103 +422,81 @@ function CitizenReports() {
                   <option>Blocked Road</option>
                   <option>Other</option>
                 </select>
-
               </div>
 
-              {/* Location */}
+              {/* LOCATION */}
               <div>
-
                 <label className="mb-2 block text-xs font-semibold text-slate-700">
                   Location
                 </label>
 
-                <div className="relative">
-
-                  <MapPin
-                    size={17}
-                    className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400"
-                  />
-
-                  <input
-                    value={location}
-                    onChange={(event) =>
-                      setLocation(event.target.value)
-                    }
-                    className="w-full rounded-xl border border-slate-200 py-3 pl-11 pr-4 text-sm outline-none focus:border-blue-400 focus:ring-2 focus:ring-blue-100"
-                    placeholder="Enter location"
-                  />
-
-                </div>
-
+                <input
+                  type="text"
+                  value={location}
+                  onChange={(e) => setLocation(e.target.value)}
+                  placeholder="e.g. East Sikkim"
+                  className="w-full rounded-xl border border-slate-200 bg-white px-4 py-3 text-sm text-slate-700 outline-none placeholder:text-slate-400 focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/10"
+                />
               </div>
 
-              {/* Severity */}
+              {/* SEVERITY */}
               <div>
-
                 <label className="mb-2 block text-xs font-semibold text-slate-700">
                   Severity
                 </label>
 
-                <div className="grid grid-cols-3 gap-2">
-
-                  {["Low", "Moderate", "High"].map(
-                    (level) => (
-                      <button
-                        type="button"
-                        key={level}
-                        onClick={() =>
-                          setSeverity(level)
-                        }
-                        className={`rounded-xl border px-3 py-3 text-xs font-semibold transition ${
-                          severity === level
-                            ? "border-red-300 bg-red-50 text-red-600"
-                            : "border-slate-200 text-slate-500 hover:bg-slate-50"
-                        }`}
-                      >
-                        {level}
-                      </button>
-                    )
-                  )}
-
-                </div>
-
+                <select
+                  value={severity}
+                  onChange={(e) => setSeverity(e.target.value)}
+                  className="w-full rounded-xl border border-slate-200 bg-white px-4 py-3 text-sm text-slate-700 outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/10"
+                >
+                  <option>Low</option>
+                  <option>Moderate</option>
+                  <option>High</option>
+                </select>
               </div>
 
-              {/* Description */}
+              {/* DESCRIPTION */}
               <div>
-
                 <label className="mb-2 block text-xs font-semibold text-slate-700">
                   Description
                 </label>
 
                 <textarea
                   value={description}
-                  onChange={(event) =>
-                    setDescription(event.target.value)
+                  onChange={(e) =>
+                    setDescription(e.target.value)
                   }
-                  rows="4"
+                  rows={4}
                   placeholder="Describe what you observed..."
-                  className="w-full resize-none rounded-xl border border-slate-200 px-4 py-3 text-sm outline-none focus:border-blue-400 focus:ring-2 focus:ring-blue-100"
+                  className="w-full resize-none rounded-xl border border-slate-200 bg-white px-4 py-3 text-sm text-slate-700 outline-none placeholder:text-slate-400 focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/10"
                 />
-
               </div>
 
-              {/* Submit */}
-              <button
-                type="submit"
-                className="flex w-full items-center justify-center gap-2 rounded-xl bg-slate-950 px-4 py-3.5 text-sm font-semibold text-white transition hover:bg-slate-800"
-              >
-                <Send size={17} />
-                Submit Report
-              </button>
+              {/* BUTTONS */}
+              <div className="flex gap-3 pt-2">
+                <button
+                  onClick={() => setShowForm(false)}
+                  className="flex-1 rounded-xl border border-slate-200 px-4 py-3 text-sm font-semibold text-slate-600 transition hover:bg-slate-50"
+                >
+                  Cancel
+                </button>
 
-            </form>
-
+                <button
+                  onClick={submitReport}
+                  disabled={
+                    !location.trim() ||
+                    !description.trim()
+                  }
+                  className="flex-1 rounded-xl bg-slate-900 px-4 py-3 text-sm font-semibold text-white transition hover:bg-slate-800 disabled:cursor-not-allowed disabled:opacity-40"
+                >
+                  Submit Report
+                </button>
+              </div>
+            </div>
           </div>
-
         </div>
       )}
-
     </div>
   );
 }

@@ -5,552 +5,647 @@ import {
   Users,
   AlertTriangle,
   Clock3,
-  ArrowUp,
-  CheckCircle2,
+  Radio,
   ShieldAlert,
-  Activity,
+  ArrowUpRight,
+  CheckCircle2,
+  Navigation,
+  FileWarning,
 } from "lucide-react";
 
 import Sidebar from "../components/Sidebar";
 import Navbar from "../components/Navbar";
-
-const initialIncidents = [
-  {
-    id: 1,
-    rank: 1,
-    location: "East Sikkim, Sikkim",
-    incident: "Potential Landslide",
-    risk: 87,
-    population: 4820,
-    villages: 3,
-    reports: 2,
-    severity: "Critical",
-    responseTime: "Immediate",
-    status: "Awaiting Response",
-  },
-  {
-    id: 2,
-    rank: 2,
-    location: "West Kameng, Arunachal Pradesh",
-    incident: "Slope Instability",
-    risk: 72,
-    population: 3180,
-    villages: 5,
-    reports: 1,
-    severity: "High",
-    responseTime: "< 30 min",
-    status: "Monitoring",
-  },
-  {
-    id: 3,
-    rank: 3,
-    location: "Dima Hasao, Assam",
-    incident: "Heavy Rainfall",
-    risk: 68,
-    population: 2740,
-    villages: 4,
-    reports: 1,
-    severity: "High",
-    responseTime: "< 1 hour",
-    status: "Monitoring",
-  },
-  {
-    id: 4,
-    rank: 4,
-    location: "East Khasi Hills, Meghalaya",
-    incident: "Terrain Risk",
-    risk: 49,
-    population: 1960,
-    villages: 2,
-    reports: 0,
-    severity: "Moderate",
-    responseTime: "< 2 hours",
-    status: "Monitoring",
-  },
-];
+import { useTerraGuard } from "../context/TerraGuardContext";
 
 function EmergencyPriority() {
-  const [incidents, setIncidents] = useState(initialIncidents);
-  const [selectedIncident, setSelectedIncident] = useState(
-    initialIncidents[0]
-  );
+  // --------------------------------------------------
+  // GLOBAL TERRAGUARD DATA
+  // --------------------------------------------------
+
+  const {
+    alerts,
+    reports,
+    dispatchResponse,
+    isResponseDispatched,
+  } = useTerraGuard();
+
+  // --------------------------------------------------
+  // SELECTED INCIDENT
+  // --------------------------------------------------
+
+  const [selectedIncident, setSelectedIncident] = useState(null);
+
+  // --------------------------------------------------
+  // BUILD PRIORITY INCIDENTS
+  // --------------------------------------------------
+
+  const incidents = alerts
+    .map((alert) => {
+      // Find reports for this location
+      const locationReports = reports.filter(
+        (report) =>
+          report.location?.toLowerCase() ===
+          alert.location?.toLowerCase()
+      );
+
+      // Count verified reports
+      const verifiedReports = locationReports.filter(
+        (report) => report.status === "Verified"
+      );
+
+      const reportCount = locationReports.length;
+
+      // --------------------------------------------------
+      // PRIORITY SCORE
+      // --------------------------------------------------
+
+      const priorityScore = Math.min(
+        100,
+        alert.risk +
+          Math.min(alert.population / 1000, 10) +
+          Math.min(reportCount * 2, 6) +
+          Math.min(verifiedReports.length * 3, 6)
+      );
+
+      // --------------------------------------------------
+      // RESPONSE TIME
+      // --------------------------------------------------
+
+      let responseTime = "<2 hours";
+
+      if (alert.level === "Critical") {
+        responseTime = "Immediate";
+      } else if (alert.level === "High") {
+        responseTime = "<30 min";
+      }
+
+      // --------------------------------------------------
+      // DISPATCH STATUS
+      // --------------------------------------------------
+
+      const isDispatched = isResponseDispatched(alert.id);
+
+      // --------------------------------------------------
+      // INCIDENT OBJECT
+      // --------------------------------------------------
+
+      return {
+        ...alert,
+
+        reports: reportCount,
+        verifiedReports: verifiedReports.length,
+
+        priorityScore: Math.round(priorityScore),
+
+        responseTime,
+
+        status: isDispatched
+          ? "Response Dispatched"
+          : alert.status === "Acknowledged"
+            ? "Monitoring"
+            : "Awaiting Response",
+
+        recommendedResponse:
+          alert.level === "Critical"
+            ? "Immediate evacuation assessment and emergency response deployment."
+            : alert.level === "High"
+              ? "Deploy field team and closely monitor slope conditions."
+              : "Continue monitoring and keep local authorities prepared.",
+      };
+    })
+
+    // Highest priority first
+    .sort((a, b) => b.priorityScore - a.priorityScore)
+
+    // Add ranking
+    .map((incident, index) => ({
+      ...incident,
+      rank: index + 1,
+    }));
+
+  // --------------------------------------------------
+  // DISPATCH RESPONSE
+  // --------------------------------------------------
 
   const markDispatched = (id) => {
-    setIncidents((current) =>
-      current.map((incident) =>
-        incident.id === id
-          ? {
-              ...incident,
-              status: "Response Dispatched",
-            }
-          : incident
-      )
-    );
-
-    setSelectedIncident((current) =>
-      current?.id === id
-        ? {
-            ...current,
-            status: "Response Dispatched",
-          }
-        : current
-    );
+    dispatchResponse(id);
   };
 
-  const criticalCount = incidents.filter(
-    (incident) => incident.severity === "Critical"
+  // --------------------------------------------------
+  // SUMMARY DATA
+  // --------------------------------------------------
+
+  const criticalIncidents = incidents.filter(
+    (incident) => incident.level === "Critical"
   ).length;
 
   const totalPopulation = incidents.reduce(
-    (sum, incident) => sum + incident.population,
+    (total, incident) => total + (incident.population || 0),
     0
   );
 
-  const activeResponses = incidents.filter(
-    (incident) => incident.status === "Response Dispatched"
+  const activeResponses = incidents.filter((incident) =>
+    isResponseDispatched(incident.id)
   ).length;
 
   return (
     <div className="min-h-screen bg-slate-50">
+      {/* --------------------------------------------------
+          SIDEBAR
+      -------------------------------------------------- */}
+
       <Sidebar />
 
-      <div className="ml-64">
+      {/* --------------------------------------------------
+          MAIN CONTENT
+      -------------------------------------------------- */}
+
+      <div className="ml-64 min-h-screen">
         <Navbar />
 
-        <main className="page-enter p-8">
+        <main className="p-6">
+          {/* --------------------------------------------------
+              PAGE HEADER
+          -------------------------------------------------- */}
 
-          {/* Header */}
-          <div className="mb-8">
-            <div className="mb-2 flex items-center gap-2">
-              <span className="h-2 w-2 animate-pulse rounded-full bg-red-500"></span>
+          <div className="mb-6 flex items-start justify-between">
+            <div>
+              <div className="mb-2 flex items-center gap-2">
+                <div className="rounded-lg bg-red-100 p-2 text-red-600">
+                  <Siren size={20} />
+                </div>
 
-              <span className="text-xs font-semibold uppercase tracking-widest text-red-600">
-                Response Intelligence
-              </span>
+                <span className="text-sm font-semibold text-red-600">
+                  Priority Engine
+                </span>
+              </div>
+
+              <h1 className="text-2xl font-bold text-slate-900">
+                Emergency Priority
+              </h1>
+
+              <p className="mt-1 text-sm text-slate-500">
+                AI-assisted prioritization of incidents for emergency response.
+              </p>
             </div>
 
-            <h1 className="text-3xl font-bold tracking-tight text-slate-900">
-              Emergency Prioritisation
-            </h1>
-
-            <p className="mt-2 max-w-3xl text-sm leading-relaxed text-slate-500">
-              TerraGuard ranks disaster incidents using risk level,
-              population exposure, affected villages and field reports
-              to help authorities respond to the highest-priority
-              situations first.
-            </p>
+            <div className="flex items-center gap-2 rounded-full bg-emerald-50 px-4 py-2 text-sm font-medium text-emerald-700">
+              <span className="h-2 w-2 rounded-full bg-emerald-500" />
+              Live Monitoring
+            </div>
           </div>
 
-          {/* Summary */}
-          <div className="grid gap-4 md:grid-cols-3">
+          {/* --------------------------------------------------
+              SUMMARY CARDS
+          -------------------------------------------------- */}
+
+          <div className="mb-6 grid grid-cols-1 gap-4 md:grid-cols-3">
+            {/* Critical Incidents */}
 
             <div className="rounded-2xl border border-red-100 bg-white p-5 shadow-sm">
-              <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-red-50">
-                <ShieldAlert size={21} className="text-red-500" />
-              </div>
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm font-medium text-slate-500">
+                    Critical Incidents
+                  </p>
 
-              <p className="mt-5 text-sm text-slate-500">
-                Critical Incidents
-              </p>
+                  <p className="mt-2 text-3xl font-bold text-red-600">
+                    {criticalIncidents}
+                  </p>
+                </div>
 
-              <h2 className="mt-1 text-3xl font-bold text-slate-900">
-                {criticalCount}
-              </h2>
-            </div>
-
-            <div className="rounded-2xl border border-orange-100 bg-white p-5 shadow-sm">
-              <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-orange-50">
-                <Users size={21} className="text-orange-500" />
-              </div>
-
-              <p className="mt-5 text-sm text-slate-500">
-                Population Exposed
-              </p>
-
-              <h2 className="mt-1 text-3xl font-bold text-slate-900">
-                {totalPopulation.toLocaleString()}
-              </h2>
-            </div>
-
-            <div className="rounded-2xl border border-emerald-100 bg-white p-5 shadow-sm">
-              <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-emerald-50">
-                <Activity size={21} className="text-emerald-500" />
-              </div>
-
-              <p className="mt-5 text-sm text-slate-500">
-                Active Responses
-              </p>
-
-              <h2 className="mt-1 text-3xl font-bold text-slate-900">
-                {activeResponses}
-              </h2>
-            </div>
-
-          </div>
-
-          {/* Main Grid */}
-          <div className="mt-7 grid gap-6 xl:grid-cols-5">
-
-            {/* Priority Queue */}
-            <div className="xl:col-span-3 rounded-2xl border border-slate-200 bg-white shadow-sm">
-
-              <div className="border-b border-slate-200 px-6 py-5">
-                <div className="flex items-center gap-3">
-                  <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-red-50">
-                    <Siren size={20} className="text-red-500" />
-                  </div>
-
-                  <div>
-                    <h2 className="font-semibold text-slate-900">
-                      Response Priority Queue
-                    </h2>
-
-                    <p className="mt-1 text-xs text-slate-500">
-                      Highest priority incidents appear first
-                    </p>
-                  </div>
+                <div className="rounded-xl bg-red-50 p-3 text-red-600">
+                  <AlertTriangle size={22} />
                 </div>
               </div>
+            </div>
 
-              <div className="divide-y divide-slate-100">
+            {/* Population Exposed */}
 
-                {incidents.map((incident) => (
-                  <button
-                    key={incident.id}
-                    onClick={() => setSelectedIncident(incident)}
-                    className={`w-full p-5 text-left transition hover:bg-slate-50 ${
-                      selectedIncident?.id === incident.id
-                        ? "bg-slate-50"
-                        : ""
-                    }`}
-                  >
+            <div className="rounded-2xl border border-orange-100 bg-white p-5 shadow-sm">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm font-medium text-slate-500">
+                    Population Exposed
+                  </p>
 
-                    <div className="flex items-center gap-4">
+                  <p className="mt-2 text-3xl font-bold text-orange-600">
+                    {totalPopulation.toLocaleString()}
+                  </p>
+                </div>
 
-                      {/* Rank */}
-                      <div
-                        className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-xl text-sm font-black ${
-                          incident.rank === 1
-                            ? "bg-red-500 text-white"
-                            : incident.rank === 2
-                            ? "bg-orange-100 text-orange-600"
-                            : "bg-slate-100 text-slate-600"
-                        }`}
-                      >
-                        #{incident.rank}
-                      </div>
-
-                      {/* Details */}
-                      <div className="min-w-0 flex-1">
-
-                        <div className="flex flex-wrap items-center gap-2">
-
-                          <h3 className="font-semibold text-slate-900">
-                            {incident.location}
-                          </h3>
-
-                          <span
-                            className={`rounded-full px-2.5 py-1 text-[10px] font-bold uppercase ${
-                              incident.severity === "Critical"
-                                ? "bg-red-50 text-red-600"
-                                : incident.severity === "High"
-                                ? "bg-orange-50 text-orange-600"
-                                : "bg-yellow-50 text-yellow-600"
-                            }`}
-                          >
-                            {incident.severity}
-                          </span>
-
-                        </div>
-
-                        <p className="mt-1 text-xs text-slate-500">
-                          {incident.incident}
-                        </p>
-
-                        <div className="mt-3 flex flex-wrap gap-4 text-[11px] text-slate-400">
-
-                          <span className="flex items-center gap-1">
-                            <AlertTriangle size={13} />
-                            {incident.risk}% risk
-                          </span>
-
-                          <span className="flex items-center gap-1">
-                            <Users size={13} />
-                            {incident.population.toLocaleString()}
-                          </span>
-
-                          <span>
-                            {incident.villages} villages
-                          </span>
-
-                          <span>
-                            {incident.reports} reports
-                          </span>
-
-                        </div>
-
-                      </div>
-
-                      {/* Status */}
-                      <div className="hidden text-right sm:block">
-
-                        <p className="text-[10px] uppercase tracking-wide text-slate-400">
-                          Response
-                        </p>
-
-                        <p className="mt-1 text-xs font-semibold text-slate-700">
-                          {incident.responseTime}
-                        </p>
-
-                      </div>
-
-                    </div>
-
-                  </button>
-                ))}
-
+                <div className="rounded-xl bg-orange-50 p-3 text-orange-600">
+                  <Users size={22} />
+                </div>
               </div>
             </div>
 
-            {/* Selected Incident */}
-            <div className="xl:col-span-2 rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
+            {/* Active Responses */}
 
-              {selectedIncident && (
-                <>
-                  <div className="flex items-start justify-between">
+            <div className="rounded-2xl border border-emerald-100 bg-white p-5 shadow-sm">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm font-medium text-slate-500">
+                    Active Responses
+                  </p>
 
+                  <p className="mt-2 text-3xl font-bold text-emerald-600">
+                    {activeResponses}
+                  </p>
+                </div>
+
+                <div className="rounded-xl bg-emerald-50 p-3 text-emerald-600">
+                  <Radio size={22} />
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* --------------------------------------------------
+              MAIN GRID
+          -------------------------------------------------- */}
+
+          <div className="grid grid-cols-1 gap-6 xl:grid-cols-3">
+            {/* --------------------------------------------------
+                PRIORITY QUEUE
+            -------------------------------------------------- */}
+
+            <div className="xl:col-span-2">
+              <div className="rounded-2xl border border-slate-200 bg-white shadow-sm">
+                <div className="border-b border-slate-200 p-5">
+                  <div className="flex items-center justify-between">
                     <div>
-                      <p className="text-[10px] font-semibold uppercase tracking-widest text-red-500">
-                        Priority #{selectedIncident.rank}
+                      <h2 className="text-lg font-bold text-slate-900">
+                        Response Priority Queue
+                      </h2>
+
+                      <p className="mt-1 text-sm text-slate-500">
+                        Incidents ranked by risk, population exposure and field reports.
+                      </p>
+                    </div>
+
+                    <div className="rounded-lg bg-slate-100 px-3 py-2 text-xs font-semibold text-slate-600">
+                      {incidents.length} Incidents
+                    </div>
+                  </div>
+                </div>
+
+                <div className="divide-y divide-slate-100">
+                  {incidents.length === 0 ? (
+                    <div className="p-8 text-center">
+                      <ShieldAlert
+                        size={32}
+                        className="mx-auto mb-3 text-slate-300"
+                      />
+
+                      <p className="font-medium text-slate-600">
+                        No active incidents
                       </p>
 
-                      <h2 className="mt-2 text-xl font-bold text-slate-900">
-                        {selectedIncident.location}
-                      </h2>
+                      <p className="mt-1 text-sm text-slate-400">
+                        New alerts will appear here automatically.
+                      </p>
+                    </div>
+                  ) : (
+                    incidents.map((incident) => {
+                      const dispatched = isResponseDispatched(
+                        incident.id
+                      );
+
+                      return (
+                        <button
+                          key={incident.id}
+                          onClick={() =>
+                            setSelectedIncident(incident)
+                          }
+                          className={`w-full p-5 text-left transition hover:bg-slate-50 ${
+                            selectedIncident?.id === incident.id
+                              ? "bg-slate-50"
+                              : ""
+                          }`}
+                        >
+                          <div className="flex items-start gap-4">
+                            {/* Rank */}
+
+                            <div
+                              className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-xl text-sm font-bold ${
+                                incident.level === "Critical"
+                                  ? "bg-red-100 text-red-700"
+                                  : incident.level === "High"
+                                    ? "bg-orange-100 text-orange-700"
+                                    : "bg-yellow-100 text-yellow-700"
+                              }`}
+                            >
+                              #{incident.rank}
+                            </div>
+
+                            {/* Incident Info */}
+
+                            <div className="min-w-0 flex-1">
+                              <div className="flex flex-wrap items-center gap-2">
+                                <h3 className="font-bold text-slate-900">
+                                  {incident.location}
+                                </h3>
+
+                                <span
+                                  className={`rounded-full px-2.5 py-1 text-xs font-semibold ${
+                                    incident.level === "Critical"
+                                      ? "bg-red-100 text-red-700"
+                                      : incident.level === "High"
+                                        ? "bg-orange-100 text-orange-700"
+                                        : "bg-yellow-100 text-yellow-700"
+                                  }`}
+                                >
+                                  {incident.level}
+                                </span>
+
+                                {dispatched && (
+                                  <span className="rounded-full bg-emerald-100 px-2.5 py-1 text-xs font-semibold text-emerald-700">
+                                    Response Dispatched
+                                  </span>
+                                )}
+                              </div>
+
+                              <p className="mt-1 text-sm text-slate-500">
+                                {incident.type}
+                              </p>
+
+                              <div className="mt-3 flex flex-wrap gap-4 text-xs text-slate-500">
+                                <span className="flex items-center gap-1">
+                                  <MapPin size={14} />
+                                  {incident.villages} villages
+                                </span>
+
+                                <span className="flex items-center gap-1">
+                                  <Users size={14} />
+                                  {incident.population?.toLocaleString()} people
+                                </span>
+
+                                <span className="flex items-center gap-1">
+                                  <FileWarning size={14} />
+                                  {incident.reports} reports
+                                </span>
+
+                                <span className="flex items-center gap-1">
+                                  <Clock3 size={14} />
+                                  {incident.responseTime}
+                                </span>
+                              </div>
+                            </div>
+
+                            {/* Priority Score */}
+
+                            <div className="hidden text-right sm:block">
+                              <p className="text-xs font-medium text-slate-400">
+                                Priority
+                              </p>
+
+                              <p className="mt-1 text-2xl font-bold text-slate-900">
+                                {incident.priorityScore}
+                              </p>
+
+                              <ArrowUpRight
+                                size={16}
+                                className="ml-auto mt-1 text-red-500"
+                              />
+                            </div>
+                          </div>
+                        </button>
+                      );
+                    })
+                  )}
+                </div>
+              </div>
+            </div>
+
+            {/* --------------------------------------------------
+                INCIDENT DETAILS
+            -------------------------------------------------- */}
+
+            <div>
+              <div className="rounded-2xl border border-slate-200 bg-white shadow-sm">
+                <div className="border-b border-slate-200 p-5">
+                  <h2 className="text-lg font-bold text-slate-900">
+                    Incident Details
+                  </h2>
+
+                  <p className="mt-1 text-sm text-slate-500">
+                    Select an incident to view response information.
+                  </p>
+                </div>
+
+                {!selectedIncident ? (
+                  <div className="p-8 text-center">
+                    <Navigation
+                      size={36}
+                      className="mx-auto mb-3 text-slate-300"
+                    />
+
+                    <p className="font-medium text-slate-600">
+                      Select an incident
+                    </p>
+
+                    <p className="mt-1 text-sm text-slate-400">
+                      Choose an incident from the priority queue.
+                    </p>
+                  </div>
+                ) : (
+                  <div className="p-5">
+                    {/* Location */}
+
+                    <div className="mb-5">
+                      <div className="flex items-center gap-2">
+                        <MapPin
+                          size={18}
+                          className="text-red-500"
+                        />
+
+                        <h3 className="text-xl font-bold text-slate-900">
+                          {selectedIncident.location}
+                        </h3>
+                      </div>
+
+                      <p className="mt-1 text-sm text-slate-500">
+                        {selectedIncident.type}
+                      </p>
                     </div>
 
-                    <div className="rounded-xl bg-red-50 p-3">
-                      <Siren size={21} className="text-red-500" />
+                    {/* Risk Score */}
+
+                    <div className="mb-5 rounded-2xl bg-red-50 p-4">
+                      <div className="flex items-center justify-between">
+                        <div>
+                          <p className="text-xs font-semibold uppercase tracking-wide text-red-500">
+                            Priority Score
+                          </p>
+
+                          <p className="mt-1 text-4xl font-bold text-red-600">
+                            {selectedIncident.priorityScore}
+                          </p>
+                        </div>
+
+                        <ShieldAlert
+                          size={34}
+                          className="text-red-500"
+                        />
+                      </div>
                     </div>
 
-                  </div>
+                    {/* Risk Factors */}
 
-                  {/* Score */}
-                  <div className="mt-6 rounded-2xl bg-red-50 p-6 text-center">
+                    <div className="mb-5">
+                      <h4 className="mb-3 text-sm font-bold text-slate-900">
+                        Priority Factors
+                      </h4>
 
-                    <p className="text-xs font-semibold uppercase tracking-widest text-red-500">
-                      Emergency Priority Score
-                    </p>
-
-                    <p className="mt-2 text-6xl font-black text-red-600">
-                      {selectedIncident.risk}
-                    </p>
-
-                    <p className="mt-1 text-xs text-red-500">
-                      Priority index
-                    </p>
-
-                  </div>
-
-                  {/* Factors */}
-                  <div className="mt-5">
-
-                    <h3 className="text-sm font-semibold text-slate-900">
-                      Priority Factors
-                    </h3>
-
-                    <div className="mt-4 space-y-3">
-
-                      <div>
-                        <div className="flex justify-between text-xs">
-                          <span className="text-slate-500">
-                            Landslide Risk
+                      <div className="space-y-3">
+                        <div className="flex items-center justify-between">
+                          <span className="text-sm text-slate-500">
+                            Risk Score
                           </span>
 
-                          <span className="font-semibold text-slate-700">
+                          <span className="font-semibold text-slate-900">
                             {selectedIncident.risk}%
                           </span>
                         </div>
 
-                        <div className="mt-1.5 h-2 rounded-full bg-slate-100">
-                          <div
-                            className="h-full rounded-full bg-red-500"
-                            style={{
-                              width: `${selectedIncident.risk}%`,
-                            }}
-                          ></div>
-                        </div>
-                      </div>
-
-                      <div>
-                        <div className="flex justify-between text-xs">
-                          <span className="text-slate-500">
-                            Population Exposure
+                        <div className="flex items-center justify-between">
+                          <span className="text-sm text-slate-500">
+                            Population
                           </span>
 
-                          <span className="font-semibold text-slate-700">
-                            {selectedIncident.population.toLocaleString()}
+                          <span className="font-semibold text-slate-900">
+                            {selectedIncident.population?.toLocaleString()}
                           </span>
                         </div>
 
-                        <div className="mt-1.5 h-2 rounded-full bg-slate-100">
-                          <div
-                            className="h-full rounded-full bg-orange-500"
-                            style={{
-                              width: `${Math.min(
-                                selectedIncident.population / 50,
-                                100
-                              )}%`,
-                            }}
-                          ></div>
-                        </div>
-                      </div>
-
-                      <div>
-                        <div className="flex justify-between text-xs">
-                          <span className="text-slate-500">
+                        <div className="flex items-center justify-between">
+                          <span className="text-sm text-slate-500">
                             Field Reports
                           </span>
 
-                          <span className="font-semibold text-slate-700">
+                          <span className="font-semibold text-slate-900">
                             {selectedIncident.reports}
                           </span>
                         </div>
 
-                        <div className="mt-1.5 h-2 rounded-full bg-slate-100">
-                          <div
-                            className="h-full rounded-full bg-blue-500"
-                            style={{
-                              width: `${Math.min(
-                                selectedIncident.reports * 35,
-                                100
-                              )}%`,
-                            }}
-                          ></div>
+                        <div className="flex items-center justify-between">
+                          <span className="text-sm text-slate-500">
+                            Verified Reports
+                          </span>
+
+                          <span className="font-semibold text-emerald-600">
+                            {selectedIncident.verifiedReports}
+                          </span>
+                        </div>
+
+                        <div className="flex items-center justify-between">
+                          <span className="text-sm text-slate-500">
+                            Villages
+                          </span>
+
+                          <span className="font-semibold text-slate-900">
+                            {selectedIncident.villages}
+                          </span>
                         </div>
                       </div>
-
-                    </div>
-                  </div>
-
-                  {/* Impact */}
-                  <div className="mt-6 grid grid-cols-2 gap-3">
-
-                    <div className="rounded-xl bg-slate-50 p-4">
-                      <Users
-                        size={17}
-                        className="text-slate-400"
-                      />
-
-                      <p className="mt-2 text-[10px] uppercase text-slate-400">
-                        Population
-                      </p>
-
-                      <p className="mt-1 font-bold text-slate-900">
-                        {selectedIncident.population.toLocaleString()}
-                      </p>
                     </div>
 
-                    <div className="rounded-xl bg-slate-50 p-4">
-                      <MapPin
-                        size={17}
-                        className="text-slate-400"
-                      />
+                    {/* Recommended Response */}
 
-                      <p className="mt-2 text-[10px] uppercase text-slate-400">
-                        Villages
-                      </p>
+                    <div className="mb-5 rounded-xl border border-orange-100 bg-orange-50 p-4">
+                      <div className="mb-2 flex items-center gap-2">
+                        <AlertTriangle
+                          size={17}
+                          className="text-orange-600"
+                        />
 
-                      <p className="mt-1 font-bold text-slate-900">
-                        {selectedIncident.villages}
-                      </p>
-                    </div>
-
-                  </div>
-
-                  {/* Response */}
-                  <div className="mt-5 rounded-xl border border-red-100 bg-red-50/50 p-4">
-
-                    <div className="flex items-center gap-3">
-
-                      <Clock3
-                        size={18}
-                        className="text-red-500"
-                      />
-
-                      <div>
-                        <p className="text-xs font-semibold text-slate-800">
+                        <h4 className="text-sm font-bold text-orange-800">
                           Recommended Response
-                        </p>
-
-                        <p className="mt-1 text-xs text-slate-500">
-                          {selectedIncident.responseTime}
-                        </p>
+                        </h4>
                       </div>
 
+                      <p className="text-sm leading-6 text-orange-700">
+                        {selectedIncident.recommendedResponse}
+                      </p>
                     </div>
 
-                  </div>
+                    {/* Response Time */}
 
-                  {/* Dispatch */}
-                  {selectedIncident.status !==
-                    "Response Dispatched" ? (
+                    <div className="mb-5 flex items-center justify-between rounded-xl bg-slate-50 p-4">
+                      <div className="flex items-center gap-2">
+                        <Clock3
+                          size={17}
+                          className="text-slate-500"
+                        />
+
+                        <span className="text-sm text-slate-500">
+                          Target Response Time
+                        </span>
+                      </div>
+
+                      <span className="font-bold text-slate-900">
+                        {selectedIncident.responseTime}
+                      </span>
+                    </div>
+
+                    {/* Dispatch Button */}
+
                     <button
                       onClick={() =>
                         markDispatched(selectedIncident.id)
                       }
-                      className="mt-5 flex w-full items-center justify-center gap-2 rounded-xl bg-red-500 px-4 py-3.5 text-sm font-semibold text-white transition hover:bg-red-600"
+                      disabled={isResponseDispatched(
+                        selectedIncident.id
+                      )}
+                      className={`flex w-full items-center justify-center gap-2 rounded-xl px-4 py-3 text-sm font-semibold transition ${
+                        isResponseDispatched(selectedIncident.id)
+                          ? "bg-emerald-100 text-emerald-700"
+                          : "bg-red-500 text-white shadow-lg shadow-red-500/20 hover:bg-red-600"
+                      }`}
                     >
-                      <Siren size={18} />
-                      Dispatch Emergency Response
-                      <ArrowUp size={16} />
+                      {isResponseDispatched(selectedIncident.id) ? (
+                        <>
+                          <CheckCircle2 size={17} />
+                          Response Dispatched
+                        </>
+                      ) : (
+                        <>
+                          <Siren size={17} />
+                          Dispatch Emergency Response
+                        </>
+                      )}
                     </button>
-                  ) : (
-                    <div className="mt-5 flex items-center justify-center gap-2 rounded-xl bg-emerald-50 px-4 py-3.5 text-sm font-semibold text-emerald-600">
-                      <CheckCircle2 size={18} />
-                      Response Team Dispatched
-                    </div>
-                  )}
-
-                </>
-              )}
-
+                  </div>
+                )}
+              </div>
             </div>
-
           </div>
 
-          {/* Explanation */}
+          {/* --------------------------------------------------
+              HOW PRIORITY IS CALCULATED
+          -------------------------------------------------- */}
+
           <div className="mt-6 rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
-
             <div className="flex items-start gap-3">
-
-              <div className="rounded-lg bg-violet-50 p-2">
-                <Activity
-                  size={18}
-                  className="text-violet-600"
-                />
+              <div className="rounded-xl bg-blue-50 p-3 text-blue-600">
+                <ShieldAlert size={20} />
               </div>
 
               <div>
-
-                <h3 className="text-sm font-semibold text-slate-900">
-                  How TerraGuard prioritises incidents
+                <h3 className="font-bold text-slate-900">
+                  How Priority Is Calculated
                 </h3>
 
-                <p className="mt-1 text-xs leading-relaxed text-slate-500">
-                  The prototype combines environmental risk,
-                  population exposure, affected villages and citizen
-                  observations to rank incidents. In the final system,
-                  this layer can consume live sensor, weather,
-                  satellite and field-report data.
+                <p className="mt-1 text-sm leading-6 text-slate-500">
+                  TerraGuard prioritizes incidents using risk level,
+                  exposed population, number of field or citizen reports,
+                  verified reports and affected villages. Higher-risk
+                  incidents are placed at the top of the response queue.
                 </p>
-
               </div>
-
             </div>
-
           </div>
-
         </main>
       </div>
     </div>

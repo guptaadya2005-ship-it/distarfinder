@@ -1,5 +1,4 @@
 import { useState } from "react";
-import { useTerraGuard } from "../context/TerraGuardContext";
 import { useNavigate } from "react-router-dom";
 
 import {
@@ -17,32 +16,45 @@ import {
 
 import Sidebar from "../components/Sidebar";
 import Navbar from "../components/Navbar";
+import { useTerraGuard } from "../context/TerraGuardContext";
 
 function Prediction() {
   const navigate = useNavigate();
 
-  const { selectedZone, prediction, savePrediction } = useTerraGuard();
+  // Global TerraGuard data
+  const {
+    selectedZone,
+    savePrediction,
+    generateAlert,
+  } = useTerraGuard();
 
+  // Prediction input values
   const [rainfall, setRainfall] = useState(
-    String(selectedZone?.rainfall ?? 182)
+    selectedZone?.rainfall?.toString() || "182"
   );
 
   const [soilMoisture, setSoilMoisture] = useState(
-    String(selectedZone?.soilMoisture ?? 81)
+    selectedZone?.soilMoisture?.toString() || "81"
   );
 
   const [slope, setSlope] = useState(
-    String(selectedZone?.slope ?? 39)
+    selectedZone?.slope?.toString() || "39"
   );
 
+  // Prediction states
   const [isAnalyzing, setIsAnalyzing] = useState(false);
+  const [prediction, setPrediction] = useState(null);
 
+  // Selected location
   const zoneName = selectedZone?.name || "East Sikkim";
 
-  const zoneState = selectedZone?.state || "Sikkim";
+  // --------------------------------------------------
+  // AI RISK ANALYSIS
+  // --------------------------------------------------
 
   const analyzeRisk = () => {
     setIsAnalyzing(true);
+    setPrediction(null);
 
     setTimeout(() => {
       const rain = Number(rainfall);
@@ -73,7 +85,7 @@ function Prediction() {
         score += 7;
       }
 
-      // Terrain slope contribution
+      // Slope contribution
       if (slopeValue >= 35) {
         score += 25;
       } else if (slopeValue >= 25) {
@@ -84,7 +96,7 @@ function Prediction() {
         score += 5;
       }
 
-      // Final prototype score
+      // Keep score realistic for prototype
       const finalScore = Math.min(score - 3, 99);
 
       let level = "Low";
@@ -109,30 +121,119 @@ function Prediction() {
           "Some environmental indicators show increased risk. Continue monitoring the region.";
       }
 
+      // Create complete prediction object
       const result = {
         score: finalScore,
         level,
         description,
+
         location: zoneName,
-        state: zoneState,
+
         rainfall: rain,
         soilMoisture: soil,
         slope: slopeValue,
+
+        population: selectedZone?.population || 4820,
+        villages: selectedZone?.villages || 3,
       };
 
-      // Save prediction globally
+      // Save locally for this page
+      setPrediction(result);
+
+      // Save globally for other pages
       savePrediction(result);
 
       setIsAnalyzing(false);
     }, 1800);
   };
 
-  const resetPrediction = () => {
-    savePrediction(null);
+  // --------------------------------------------------
+  // GENERATE EMERGENCY ALERT
+  // --------------------------------------------------
 
-    setRainfall(String(selectedZone?.rainfall ?? 182));
-    setSoilMoisture(String(selectedZone?.soilMoisture ?? 81));
-    setSlope(String(selectedZone?.slope ?? 39));
+  const handleGenerateAlert = () => {
+    if (!prediction) return;
+
+    // Send prediction result to global Alerts state
+    generateAlert({
+      location: prediction.location,
+      type: "Potential Landslide",
+
+      risk: prediction.score,
+      level: prediction.level,
+
+      population: prediction.population,
+      villages: prediction.villages,
+
+      rainfall: prediction.rainfall,
+      soilMoisture: prediction.soilMoisture,
+      slope: prediction.slope,
+
+      status: "Active",
+    });
+
+    // Move to Alerts page
+    navigate("/alerts");
+  };
+
+  // --------------------------------------------------
+  // RESET
+  // --------------------------------------------------
+
+  const resetPrediction = () => {
+    setPrediction(null);
+
+    setRainfall(
+      selectedZone?.rainfall?.toString() || "182"
+    );
+
+    setSoilMoisture(
+      selectedZone?.soilMoisture?.toString() || "81"
+    );
+
+    setSlope(
+      selectedZone?.slope?.toString() || "39"
+    );
+  };
+
+  // --------------------------------------------------
+  // RISK COLOR
+  // --------------------------------------------------
+
+  const getRiskColor = () => {
+    if (!prediction) return "text-slate-900";
+
+    if (prediction.level === "Critical") {
+      return "text-red-600";
+    }
+
+    if (prediction.level === "High") {
+      return "text-orange-500";
+    }
+
+    if (prediction.level === "Moderate") {
+      return "text-yellow-500";
+    }
+
+    return "text-emerald-500";
+  };
+
+  const getRiskBg = () => {
+    if (!prediction) return "bg-slate-100";
+
+    if (prediction.level === "Critical") {
+      return "bg-red-50 border-red-200";
+    }
+
+    if (prediction.level === "High") {
+      return "bg-orange-50 border-orange-200";
+    }
+
+    if (prediction.level === "Moderate") {
+      return "bg-yellow-50 border-yellow-200";
+    }
+
+    return "bg-emerald-50 border-emerald-200";
   };
 
   return (
@@ -142,457 +243,433 @@ function Prediction() {
       <div className="ml-64">
         <Navbar />
 
-        <main className="page-enter p-8">
+        <main className="p-8">
+          {/* PAGE HEADER */}
 
-          {/* Heading */}
-          <div className="mb-8">
-            <div className="mb-2 flex items-center gap-2">
-              <span className="h-2 w-2 rounded-full bg-violet-500"></span>
+          <div className="mb-8 flex items-start justify-between">
+            <div>
+              <div className="mb-2 flex items-center gap-2">
+                <BrainCircuit
+                  size={20}
+                  className="text-emerald-500"
+                />
 
-              <span className="text-xs font-semibold uppercase tracking-widest text-violet-600">
-                AI Decision Support
-              </span>
+                <span className="text-xs font-semibold uppercase tracking-widest text-emerald-600">
+                  AI Decision Support
+                </span>
+              </div>
+
+              <h1 className="text-3xl font-bold tracking-tight text-slate-900">
+                AI Risk Prediction
+              </h1>
+
+              <p className="mt-2 max-w-2xl text-sm text-slate-500">
+                Analyze environmental conditions to estimate
+                landslide risk for monitored zones.
+              </p>
             </div>
 
-            <h1 className="text-3xl font-bold tracking-tight text-slate-900">
-              AI Risk Prediction
-            </h1>
+            <div className="flex items-center gap-2 rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-2">
+              <span className="h-2 w-2 rounded-full bg-emerald-500" />
 
-            <p className="mt-2 max-w-2xl text-sm text-slate-500">
-              Analyze environmental conditions to estimate landslide risk
-              and support faster emergency decision-making.
-            </p>
+              <span className="text-xs font-semibold text-emerald-700">
+                AI Engine Ready
+              </span>
+            </div>
           </div>
 
-          <div className="grid gap-6 xl:grid-cols-5">
+          {/* SELECTED ZONE */}
 
-            {/* ================= INPUT PANEL ================= */}
+          <div className="mb-6 flex items-center justify-between rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
+            <div className="flex items-center gap-4">
+              <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-slate-900">
+                <MapPin
+                  size={20}
+                  className="text-white"
+                />
+              </div>
 
-            <div className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm xl:col-span-2">
+              <div>
+                <p className="text-xs font-medium uppercase tracking-wider text-slate-400">
+                  Selected Monitoring Zone
+                </p>
 
-              <div className="flex items-center gap-3">
-                <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-violet-50">
-                  <BrainCircuit
-                    size={22}
-                    className="text-violet-600"
-                  />
-                </div>
+                <h2 className="mt-1 text-lg font-bold text-slate-900">
+                  {zoneName}
+                </h2>
+              </div>
+            </div>
 
-                <div>
-                  <h2 className="font-semibold text-slate-900">
+            {selectedZone && (
+              <div className="hidden text-right md:block">
+                <p className="text-xs text-slate-400">
+                  Region
+                </p>
+
+                <p className="text-sm font-semibold text-slate-700">
+                  {selectedZone.state || "Sikkim"}
+                </p>
+              </div>
+            )}
+          </div>
+
+          {/* MAIN GRID */}
+
+          <div className="grid gap-6 lg:grid-cols-5">
+            {/* INPUT PANEL */}
+
+            <div className="lg:col-span-3">
+              <div className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
+                <div className="mb-6">
+                  <h2 className="text-lg font-bold text-slate-900">
                     Environmental Inputs
                   </h2>
 
-                  <p className="text-xs text-slate-500">
-                    Enter current field conditions
+                  <p className="mt-1 text-sm text-slate-500">
+                    Enter or verify current environmental
+                    conditions.
                   </p>
                 </div>
-              </div>
 
-              {/* Location */}
-              <div className="mt-7 rounded-xl border border-slate-200 bg-slate-50 p-4">
-                <div className="flex items-center gap-2">
-                  <MapPin
-                    size={17}
-                    className="text-red-500"
-                  />
+                <div className="space-y-5">
+                  {/* RAINFALL */}
 
                   <div>
-                    <p className="text-[10px] uppercase tracking-wide text-slate-400">
-                      Monitoring Location
-                    </p>
+                    <label className="mb-2 flex items-center gap-2 text-sm font-semibold text-slate-700">
+                      <CloudRain
+                        size={17}
+                        className="text-blue-500"
+                      />
 
-                    <p className="text-sm font-semibold text-slate-800">
-                      {zoneName}, {zoneState}
+                      Rainfall
+                    </label>
+
+                    <div className="relative">
+                      <input
+                        type="number"
+                        value={rainfall}
+                        onChange={(e) =>
+                          setRainfall(e.target.value)
+                        }
+                        className="w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 pr-16 text-sm font-semibold text-slate-800 outline-none transition focus:border-emerald-500 focus:bg-white focus:ring-2 focus:ring-emerald-100"
+                      />
+
+                      <span className="absolute right-4 top-1/2 -translate-y-1/2 text-xs font-medium text-slate-400">
+                        mm
+                      </span>
+                    </div>
+
+                    <p className="mt-1.5 text-xs text-slate-400">
+                      24-hour accumulated rainfall
+                    </p>
+                  </div>
+
+                  {/* SOIL MOISTURE */}
+
+                  <div>
+                    <label className="mb-2 flex items-center gap-2 text-sm font-semibold text-slate-700">
+                      <Droplets
+                        size={17}
+                        className="text-cyan-500"
+                      />
+
+                      Soil Moisture
+                    </label>
+
+                    <div className="relative">
+                      <input
+                        type="number"
+                        value={soilMoisture}
+                        onChange={(e) =>
+                          setSoilMoisture(e.target.value)
+                        }
+                        className="w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 pr-12 text-sm font-semibold text-slate-800 outline-none transition focus:border-emerald-500 focus:bg-white focus:ring-2 focus:ring-emerald-100"
+                      />
+
+                      <span className="absolute right-4 top-1/2 -translate-y-1/2 text-xs font-medium text-slate-400">
+                        %
+                      </span>
+                    </div>
+
+                    <p className="mt-1.5 text-xs text-slate-400">
+                      Current soil saturation level
+                    </p>
+                  </div>
+
+                  {/* SLOPE */}
+
+                  <div>
+                    <label className="mb-2 flex items-center gap-2 text-sm font-semibold text-slate-700">
+                      <Mountain
+                        size={17}
+                        className="text-amber-500"
+                      />
+
+                      Slope Angle
+                    </label>
+
+                    <div className="relative">
+                      <input
+                        type="number"
+                        value={slope}
+                        onChange={(e) =>
+                          setSlope(e.target.value)
+                        }
+                        className="w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 pr-12 text-sm font-semibold text-slate-800 outline-none transition focus:border-emerald-500 focus:bg-white focus:ring-2 focus:ring-emerald-100"
+                      />
+
+                      <span className="absolute right-4 top-1/2 -translate-y-1/2 text-xs font-medium text-slate-400">
+                        °
+                      </span>
+                    </div>
+
+                    <p className="mt-1.5 text-xs text-slate-400">
+                      Terrain slope angle
                     </p>
                   </div>
                 </div>
-              </div>
 
-              {/* Rainfall */}
-              <div className="mt-6">
-                <label className="mb-2 block text-xs font-semibold text-slate-700">
-                  Rainfall
-                </label>
+                {/* ANALYZE BUTTON */}
 
-                <div className="relative">
-                  <CloudRain
-                    size={18}
-                    className="absolute left-4 top-1/2 -translate-y-1/2 text-blue-500"
-                  />
-
-                  <input
-                    type="number"
-                    value={rainfall}
-                    onChange={(e) => setRainfall(e.target.value)}
-                    className="w-full rounded-xl border border-slate-200 bg-white py-3 pl-11 pr-16 text-sm font-semibold outline-none transition focus:border-blue-400 focus:ring-2 focus:ring-blue-100"
-                  />
-
-                  <span className="absolute right-4 top-1/2 -translate-y-1/2 text-xs text-slate-400">
-                    mm
-                  </span>
-                </div>
-
-                <p className="mt-1.5 text-[11px] text-slate-400">
-                  Recent accumulated rainfall
-                </p>
-              </div>
-
-              {/* Soil moisture */}
-              <div className="mt-5">
-                <label className="mb-2 block text-xs font-semibold text-slate-700">
-                  Soil Moisture
-                </label>
-
-                <div className="relative">
-                  <Droplets
-                    size={18}
-                    className="absolute left-4 top-1/2 -translate-y-1/2 text-cyan-500"
-                  />
-
-                  <input
-                    type="number"
-                    min="0"
-                    max="100"
-                    value={soilMoisture}
-                    onChange={(e) =>
-                      setSoilMoisture(e.target.value)
-                    }
-                    className="w-full rounded-xl border border-slate-200 bg-white py-3 pl-11 pr-16 text-sm font-semibold outline-none transition focus:border-cyan-400 focus:ring-2 focus:ring-cyan-100"
-                  />
-
-                  <span className="absolute right-4 top-1/2 -translate-y-1/2 text-xs text-slate-400">
-                    %
-                  </span>
-                </div>
-
-                <p className="mt-1.5 text-[11px] text-slate-400">
-                  Current soil saturation level
-                </p>
-              </div>
-
-              {/* Slope */}
-              <div className="mt-5">
-                <label className="mb-2 block text-xs font-semibold text-slate-700">
-                  Terrain Slope
-                </label>
-
-                <div className="relative">
-                  <Mountain
-                    size={18}
-                    className="absolute left-4 top-1/2 -translate-y-1/2 text-orange-500"
-                  />
-
-                  <input
-                    type="number"
-                    value={slope}
-                    onChange={(e) => setSlope(e.target.value)}
-                    className="w-full rounded-xl border border-slate-200 bg-white py-3 pl-11 pr-20 text-sm font-semibold outline-none transition focus:border-orange-400 focus:ring-2 focus:ring-orange-100"
-                  />
-
-                  <span className="absolute right-4 top-1/2 -translate-y-1/2 text-xs text-slate-400">
-                    degrees
-                  </span>
-                </div>
-
-                <p className="mt-1.5 text-[11px] text-slate-400">
-                  Average terrain inclination
-                </p>
-              </div>
-
-              {/* Analyze button */}
-              <button
-                onClick={analyzeRisk}
-                disabled={isAnalyzing}
-                className="mt-7 flex w-full items-center justify-center gap-2 rounded-xl bg-slate-950 px-4 py-3.5 text-sm font-semibold text-white transition hover:bg-slate-800 disabled:cursor-not-allowed disabled:opacity-70"
-              >
-                {isAnalyzing ? (
-                  <>
-                    <Loader2
-                      size={18}
-                      className="animate-spin"
-                    />
-
-                    Analyzing environmental data...
-                  </>
-                ) : (
-                  <>
-                    <BrainCircuit size={18} />
-
-                    Analyze Risk
-                  </>
-                )}
-              </button>
-
-              {/* Reset */}
-              {prediction && (
                 <button
-                  onClick={resetPrediction}
-                  className="mt-3 flex w-full items-center justify-center gap-2 rounded-xl border border-slate-200 px-4 py-3 text-xs font-semibold text-slate-600 transition hover:bg-slate-50"
+                  onClick={analyzeRisk}
+                  disabled={isAnalyzing}
+                  className="mt-7 flex w-full items-center justify-center gap-2 rounded-xl bg-slate-950 px-5 py-3.5 text-sm font-semibold text-white shadow-lg shadow-slate-900/10 transition hover:bg-slate-800 disabled:cursor-not-allowed disabled:opacity-60"
                 >
-                  <RotateCcw size={14} />
+                  {isAnalyzing ? (
+                    <>
+                      <Loader2
+                        size={17}
+                        className="animate-spin"
+                      />
 
-                  Reset Analysis
+                      Analyzing Environmental Data...
+                    </>
+                  ) : (
+                    <>
+                      <BrainCircuit size={17} />
+
+                      Analyze Risk
+                    </>
+                  )}
                 </button>
-              )}
+
+                {/* RESET */}
+
+                {prediction && !isAnalyzing && (
+                  <button
+                    onClick={resetPrediction}
+                    className="mt-3 flex w-full items-center justify-center gap-2 rounded-xl border border-slate-200 bg-white px-5 py-3 text-sm font-semibold text-slate-600 transition hover:bg-slate-50"
+                  >
+                    <RotateCcw size={15} />
+
+                    Run New Analysis
+                  </button>
+                )}
+              </div>
             </div>
 
-            {/* ================= RESULT PANEL ================= */}
+            {/* RESULT PANEL */}
 
-            <div className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm xl:col-span-3">
-
-              {/* Ready state */}
+            <div className="lg:col-span-2">
               {!prediction && !isAnalyzing && (
-                <div className="flex h-full min-h-[560px] flex-col items-center justify-center text-center">
-
-                  <div className="flex h-20 w-20 items-center justify-center rounded-3xl bg-violet-50">
+                <div className="flex min-h-[450px] flex-col items-center justify-center rounded-2xl border border-dashed border-slate-300 bg-white p-8 text-center">
+                  <div className="flex h-16 w-16 items-center justify-center rounded-2xl bg-slate-100">
                     <BrainCircuit
-                      size={38}
-                      className="text-violet-500"
+                      size={30}
+                      className="text-slate-400"
                     />
                   </div>
 
-                  <h2 className="mt-6 text-xl font-bold text-slate-900">
-                    Ready for Risk Analysis
-                  </h2>
+                  <h3 className="mt-5 text-lg font-bold text-slate-800">
+                    Ready for Analysis
+                  </h3>
 
-                  <p className="mt-2 max-w-md text-sm leading-relaxed text-slate-500">
-                    Enter environmental conditions on the left and run the
-                    AI analysis to estimate the current landslide risk.
+                  <p className="mt-2 max-w-xs text-sm leading-relaxed text-slate-500">
+                    Enter environmental values and run the AI
+                    analysis to generate a landslide risk
+                    prediction.
                   </p>
-
-                  <div className="mt-7 grid w-full max-w-md grid-cols-3 gap-3">
-
-                    <div className="rounded-xl bg-blue-50 p-3">
-                      <CloudRain
-                        size={18}
-                        className="mx-auto text-blue-500"
-                      />
-
-                      <p className="mt-2 text-[10px] font-medium text-slate-500">
-                        Rainfall
-                      </p>
-                    </div>
-
-                    <div className="rounded-xl bg-cyan-50 p-3">
-                      <Droplets
-                        size={18}
-                        className="mx-auto text-cyan-500"
-                      />
-
-                      <p className="mt-2 text-[10px] font-medium text-slate-500">
-                        Soil
-                      </p>
-                    </div>
-
-                    <div className="rounded-xl bg-orange-50 p-3">
-                      <Mountain
-                        size={18}
-                        className="mx-auto text-orange-500"
-                      />
-
-                      <p className="mt-2 text-[10px] font-medium text-slate-500">
-                        Terrain
-                      </p>
-                    </div>
-
-                  </div>
                 </div>
               )}
 
-              {/* Loading state */}
               {isAnalyzing && (
-                <div className="flex min-h-[560px] flex-col items-center justify-center text-center">
-
-                  <div className="relative">
-                    <div className="h-24 w-24 animate-pulse rounded-full bg-violet-100"></div>
-
-                    <BrainCircuit
-                      size={40}
-                      className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 text-violet-600"
+                <div className="flex min-h-[450px] flex-col items-center justify-center rounded-2xl border border-slate-200 bg-white p-8 text-center shadow-sm">
+                  <div className="flex h-16 w-16 items-center justify-center rounded-2xl bg-emerald-50">
+                    <Loader2
+                      size={30}
+                      className="animate-spin text-emerald-500"
                     />
                   </div>
 
-                  <h2 className="mt-7 text-xl font-bold text-slate-900">
-                    AI is analyzing the region...
-                  </h2>
+                  <h3 className="mt-5 text-lg font-bold text-slate-800">
+                    AI Analysis in Progress
+                  </h3>
 
-                  <p className="mt-2 text-sm text-slate-500">
-                    Evaluating rainfall, soil moisture and terrain conditions
+                  <p className="mt-2 max-w-xs text-sm leading-relaxed text-slate-500">
+                    Processing rainfall, soil moisture and
+                    terrain conditions for {zoneName}.
                   </p>
 
-                  <div className="mt-6 flex items-center gap-2">
-                    <span className="h-2 w-2 animate-bounce rounded-full bg-violet-400"></span>
-
-                    <span className="h-2 w-2 animate-bounce rounded-full bg-violet-400 [animation-delay:150ms]"></span>
-
-                    <span className="h-2 w-2 animate-bounce rounded-full bg-violet-400 [animation-delay:300ms]"></span>
+                  <div className="mt-6 w-full max-w-xs">
+                    <div className="h-2 overflow-hidden rounded-full bg-slate-100">
+                      <div className="h-full w-2/3 animate-pulse rounded-full bg-emerald-500" />
+                    </div>
                   </div>
                 </div>
               )}
 
-              {/* Prediction result */}
               {prediction && !isAnalyzing && (
-                <div>
-
-                  {/* Header */}
-                  <div className="flex items-start justify-between">
+                <div
+                  className={`rounded-2xl border p-6 shadow-sm ${getRiskBg()}`}
+                >
+                  <div className="flex items-center justify-between">
                     <div>
-                      <p className="text-xs font-semibold uppercase tracking-widest text-slate-400">
-                        AI Prediction Result
+                      <p className="text-xs font-semibold uppercase tracking-widest text-slate-500">
+                        AI Risk Assessment
                       </p>
 
-                      <h2 className="mt-2 text-2xl font-bold text-slate-900">
-                        {prediction.location || zoneName} Risk Assessment
-                      </h2>
-                    </div>
-
-                    <div className="rounded-xl bg-emerald-50 p-3">
-                      <CheckCircle2
-                        size={22}
-                        className="text-emerald-600"
-                      />
-                    </div>
-                  </div>
-
-                  {/* Risk score */}
-                  <div className="mt-7 rounded-2xl bg-red-50 p-6">
-
-                    <div className="flex flex-col items-center justify-between gap-6 sm:flex-row">
-
-                      <div>
-                        <div className="flex items-center gap-2">
-                          <span className="h-3 w-3 animate-pulse rounded-full bg-red-500"></span>
-
-                          <span className="text-xs font-bold uppercase tracking-widest text-red-600">
-                            {prediction.level} Risk
-                          </span>
-                        </div>
-
-                        <p className="mt-3 text-6xl font-black tracking-tight text-red-600">
-                          {prediction.score}%
-                        </p>
-
-                        <p className="mt-1 text-sm font-medium text-red-500">
-                          Estimated Landslide Probability
-                        </p>
-                      </div>
-
-                      <div className="flex h-28 w-28 items-center justify-center rounded-full border-8 border-red-200 bg-white">
-                        <AlertTriangle
-                          size={42}
-                          className="text-red-500"
-                        />
-                      </div>
-                    </div>
-
-                    {/* Progress */}
-                    <div className="mt-6">
-                      <div className="h-3 overflow-hidden rounded-full bg-red-100">
-                        <div
-                          className="h-full rounded-full bg-red-500 transition-all duration-1000"
-                          style={{
-                            width: `${prediction.score}%`,
-                          }}
-                        ></div>
-                      </div>
-
-                      <div className="mt-2 flex justify-between text-[10px] text-red-400">
-                        <span>Low</span>
-                        <span>Moderate</span>
-                        <span>High</span>
-                        <span>Critical</span>
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* Explanation */}
-                  <div className="mt-5 rounded-xl border border-slate-200 p-5">
-                    <div className="flex items-center gap-2">
-                      <BrainCircuit
-                        size={18}
-                        className="text-violet-600"
-                      />
-
-                      <h3 className="text-sm font-semibold text-slate-900">
-                        AI Assessment
+                      <h3 className="mt-1 text-lg font-bold text-slate-900">
+                        {prediction.location}
                       </h3>
                     </div>
 
-                    <p className="mt-3 text-sm leading-relaxed text-slate-500">
+                    {prediction.level === "Critical" ? (
+                      <AlertTriangle
+                        size={23}
+                        className="text-red-500"
+                      />
+                    ) : (
+                      <CheckCircle2
+                        size={23}
+                        className="text-emerald-500"
+                      />
+                    )}
+                  </div>
+
+                  {/* SCORE */}
+
+                  <div className="mt-8 text-center">
+                    <p
+                      className={`text-7xl font-black tracking-tight ${getRiskColor()}`}
+                    >
+                      {prediction.score}%
+                    </p>
+
+                    <div
+                      className={`mt-3 inline-flex items-center gap-2 rounded-full px-4 py-2 text-sm font-bold ${
+                        prediction.level === "Critical"
+                          ? "bg-red-100 text-red-700"
+                          : prediction.level === "High"
+                            ? "bg-orange-100 text-orange-700"
+                            : prediction.level === "Moderate"
+                              ? "bg-yellow-100 text-yellow-700"
+                              : "bg-emerald-100 text-emerald-700"
+                      }`}
+                    >
+                      {prediction.level === "Critical" && (
+                        <AlertTriangle size={15} />
+                      )}
+
+                      {prediction.level === "Critical"
+                        ? "CRITICAL RISK"
+                        : `${prediction.level.toUpperCase()} RISK`}
+                    </div>
+                  </div>
+
+                  {/* DESCRIPTION */}
+
+                  <div className="mt-7 rounded-xl border border-white/70 bg-white/70 p-4">
+                    <p className="text-sm leading-relaxed text-slate-600">
                       {prediction.description}
                     </p>
                   </div>
 
-                  {/* Input summary */}
-                  <div className="mt-5 grid gap-3 sm:grid-cols-3">
+                  {/* INPUT SUMMARY */}
 
-                    <div className="rounded-xl border border-slate-100 bg-slate-50 p-4">
-                      <p className="text-[10px] uppercase tracking-wide text-slate-400">
+                  <div className="mt-5 grid grid-cols-3 gap-2">
+                    <div className="rounded-xl bg-white/70 p-3 text-center">
+                      <p className="text-[10px] uppercase tracking-wider text-slate-400">
                         Rainfall
                       </p>
 
-                      <p className="mt-1 text-lg font-bold text-slate-900">
+                      <p className="mt-1 text-sm font-bold text-slate-800">
                         {prediction.rainfall} mm
                       </p>
                     </div>
 
-                    <div className="rounded-xl border border-slate-100 bg-slate-50 p-4">
-                      <p className="text-[10px] uppercase tracking-wide text-slate-400">
-                        Soil Moisture
+                    <div className="rounded-xl bg-white/70 p-3 text-center">
+                      <p className="text-[10px] uppercase tracking-wider text-slate-400">
+                        Soil
                       </p>
 
-                      <p className="mt-1 text-lg font-bold text-slate-900">
+                      <p className="mt-1 text-sm font-bold text-slate-800">
                         {prediction.soilMoisture}%
                       </p>
                     </div>
 
-                    <div className="rounded-xl border border-slate-100 bg-slate-50 p-4">
-                      <p className="text-[10px] uppercase tracking-wide text-slate-400">
-                        Terrain Slope
+                    <div className="rounded-xl bg-white/70 p-3 text-center">
+                      <p className="text-[10px] uppercase tracking-wider text-slate-400">
+                        Slope
                       </p>
 
-                      <p className="mt-1 text-lg font-bold text-slate-900">
+                      <p className="mt-1 text-sm font-bold text-slate-800">
                         {prediction.slope}°
                       </p>
                     </div>
                   </div>
 
-                  {/* Alert action */}
-                  <div className="mt-5 flex flex-col justify-between gap-4 rounded-xl border border-red-100 bg-red-50/50 p-4 sm:flex-row sm:items-center">
+                  {/* GENERATE ALERT */}
 
-                    <div className="flex items-center gap-3">
-                      <div className="rounded-lg bg-red-100 p-2">
-                        <AlertTriangle
-                          size={18}
-                          className="text-red-600"
-                        />
-                      </div>
+                  <button
+                    onClick={handleGenerateAlert}
+                    className="mt-6 flex w-full items-center justify-center gap-2 rounded-xl bg-red-600 px-5 py-3.5 text-sm font-semibold text-white shadow-lg shadow-red-600/20 transition hover:bg-red-700"
+                  >
+                    <AlertTriangle size={17} />
 
-                      <div>
-                        <p className="text-xs font-bold text-slate-800">
-                          Immediate attention recommended
-                        </p>
+                    Generate Emergency Alert
 
-                        <p className="text-[11px] text-slate-500">
-                          Generate an emergency alert for this zone.
-                        </p>
-                      </div>
-                    </div>
+                    <ArrowRight
+                      size={16}
+                      className="ml-auto"
+                    />
+                  </button>
 
-                    <button
-                      onClick={() => navigate("/alerts")}
-                      className="flex items-center justify-center gap-2 rounded-lg bg-red-500 px-4 py-2.5 text-xs font-semibold text-white transition hover:bg-red-600"
-                    >
-                      Generate Alert
-
-                      <ArrowRight size={14} />
-                    </button>
-                  </div>
-
+                  <p className="mt-3 text-center text-[11px] text-slate-500">
+                    This will create an active alert for{" "}
+                    {prediction.location}.
+                  </p>
                 </div>
               )}
+            </div>
+          </div>
 
+          {/* INFORMATION FOOTER */}
+
+          <div className="mt-6 rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
+            <div className="flex items-start gap-4">
+              <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-blue-50">
+                <BrainCircuit
+                  size={19}
+                  className="text-blue-500"
+                />
+              </div>
+
+              <div>
+                <h3 className="text-sm font-bold text-slate-800">
+                  Prototype AI Decision Support
+                </h3>
+
+                <p className="mt-1 text-xs leading-relaxed text-slate-500">
+                  TerraGuard combines rainfall, soil moisture
+                  and terrain slope indicators to estimate
+                  landslide risk. In the production system,
+                  this decision-support layer can be connected
+                  to trained ML models, real-time sensors,
+                  satellite data and historical disaster
+                  records.
+                </p>
+              </div>
             </div>
           </div>
         </main>

@@ -3,13 +3,22 @@ import { createContext, useContext, useState } from "react";
 const TerraGuardContext = createContext(null);
 
 export function TerraGuardProvider({ children }) {
-  // Currently selected risk zone
+  // --------------------------------------------------
+  // SELECTED RISK ZONE
+  // --------------------------------------------------
+
   const [selectedZone, setSelectedZone] = useState(null);
 
-  // Latest AI prediction
+  // --------------------------------------------------
+  // AI PREDICTION
+  // --------------------------------------------------
+
   const [prediction, setPrediction] = useState(null);
 
-  // Emergency alerts
+  // --------------------------------------------------
+  // EMERGENCY ALERTS
+  // --------------------------------------------------
+
   const [alerts, setAlerts] = useState([
     {
       id: 1,
@@ -33,7 +42,10 @@ export function TerraGuardProvider({ children }) {
     },
   ]);
 
-  // Citizen / field reports
+  // --------------------------------------------------
+  // CITIZEN / FIELD REPORTS
+  // --------------------------------------------------
+
   const [reports, setReports] = useState([
     {
       id: 1,
@@ -53,20 +65,39 @@ export function TerraGuardProvider({ children }) {
     },
   ]);
 
-  // System status
+  // --------------------------------------------------
+  // DISPATCHED EMERGENCY RESPONSES
+  // --------------------------------------------------
+
+  const [dispatchedResponses, setDispatchedResponses] =
+    useState([]);
+
+  // --------------------------------------------------
+  // SYSTEM STATUS
+  // --------------------------------------------------
+
   const [systemStatus] = useState("Operational");
 
-  // Select a zone from Risk Map
+  // --------------------------------------------------
+  // SELECT ZONE
+  // --------------------------------------------------
+
   const selectZone = (zone) => {
     setSelectedZone(zone);
   };
 
-  // Store AI prediction
+  // --------------------------------------------------
+  // SAVE AI PREDICTION
+  // --------------------------------------------------
+
   const savePrediction = (result) => {
     setPrediction(result);
   };
 
-  // Generate a new emergency alert
+  // --------------------------------------------------
+  // GENERATE ALERT
+  // --------------------------------------------------
+
   const generateAlert = (alert) => {
     setAlerts((currentAlerts) => [
       {
@@ -77,7 +108,10 @@ export function TerraGuardProvider({ children }) {
     ]);
   };
 
-  // Add a citizen report
+  // --------------------------------------------------
+  // ADD CITIZEN REPORT
+  // --------------------------------------------------
+
   const addReport = (report) => {
     setReports((currentReports) => [
       {
@@ -88,27 +122,80 @@ export function TerraGuardProvider({ children }) {
     ]);
   };
 
-  // Verify a citizen report
+  // --------------------------------------------------
+  // VERIFY CITIZEN REPORT
+  // --------------------------------------------------
+
   const verifyReport = (id) => {
     setReports((currentReports) =>
       currentReports.map((report) =>
         report.id === id
-          ? { ...report, status: "Verified" }
+          ? {
+              ...report,
+              status: "Verified",
+            }
           : report
       )
     );
   };
 
-  // Acknowledge an alert
+  // --------------------------------------------------
+  // ACKNOWLEDGE ALERT
+  // --------------------------------------------------
+
   const acknowledgeAlert = (id) => {
     setAlerts((currentAlerts) =>
       currentAlerts.map((alert) =>
         alert.id === id
-          ? { ...alert, status: "Acknowledged" }
+          ? {
+              ...alert,
+              status: "Acknowledged",
+            }
           : alert
       )
     );
   };
+
+  // --------------------------------------------------
+  // DISPATCH EMERGENCY RESPONSE
+  // --------------------------------------------------
+
+  const dispatchResponse = (id) => {
+    // Prevent duplicate dispatch
+    if (dispatchedResponses.includes(id)) {
+      return;
+    }
+
+    // Store dispatched response globally
+    setDispatchedResponses((currentResponses) => [
+      ...currentResponses,
+      id,
+    ]);
+
+    // Update the corresponding alert
+    setAlerts((currentAlerts) =>
+      currentAlerts.map((alert) =>
+        alert.id === id
+          ? {
+              ...alert,
+              status: "Response Dispatched",
+            }
+          : alert
+      )
+    );
+  };
+
+  // --------------------------------------------------
+  // CHECK WHETHER RESPONSE IS DISPATCHED
+  // --------------------------------------------------
+
+  const isResponseDispatched = (id) => {
+    return dispatchedResponses.includes(id);
+  };
+
+  // --------------------------------------------------
+  // CONTEXT
+  // --------------------------------------------------
 
   return (
     <TerraGuardContext.Provider
@@ -118,6 +205,7 @@ export function TerraGuardProvider({ children }) {
         alerts,
         reports,
         systemStatus,
+        dispatchedResponses,
 
         selectZone,
         savePrediction,
@@ -125,6 +213,8 @@ export function TerraGuardProvider({ children }) {
         addReport,
         verifyReport,
         acknowledgeAlert,
+        dispatchResponse,
+        isResponseDispatched,
       }}
     >
       {children}
@@ -132,7 +222,10 @@ export function TerraGuardProvider({ children }) {
   );
 }
 
-// Custom hook for accessing TerraGuard data
+// --------------------------------------------------
+// CUSTOM HOOK
+// --------------------------------------------------
+
 export function useTerraGuard() {
   const context = useContext(TerraGuardContext);
 

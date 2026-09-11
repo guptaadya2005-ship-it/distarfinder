@@ -1,121 +1,124 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
+
 import {
   Bell,
   AlertTriangle,
   CheckCircle2,
+  Clock,
   MapPin,
-  Clock3,
   Users,
   Mountain,
+  ArrowRight,
   ShieldAlert,
   X,
+  Siren,
 } from "lucide-react";
 
 import Sidebar from "../components/Sidebar";
 import Navbar from "../components/Navbar";
-
-const initialAlerts = [
-  {
-    id: 1,
-    severity: "Critical",
-    title: "High Landslide Risk Detected",
-    location: "East Sikkim, Sikkim",
-    risk: 87,
-    time: "2 min ago",
-    villages: 3,
-    population: 4820,
-    message:
-      "Heavy rainfall, high soil moisture and steep terrain indicate a critical landslide probability.",
-    status: "Active",
-  },
-  {
-    id: 2,
-    severity: "High",
-    title: "Elevated Landslide Probability",
-    location: "West Kameng, Arunachal Pradesh",
-    risk: 72,
-    time: "18 min ago",
-    villages: 5,
-    population: 3180,
-    message:
-      "Environmental conditions have crossed the high-risk threshold. Continue close monitoring.",
-    status: "Active",
-  },
-  {
-    id: 3,
-    severity: "High",
-    title: "Rainfall Threshold Exceeded",
-    location: "Dima Hasao, Assam",
-    risk: 68,
-    time: "31 min ago",
-    villages: 4,
-    population: 2740,
-    message:
-      "Accumulated rainfall and increasing soil moisture require field verification.",
-    status: "Active",
-  },
-  {
-    id: 4,
-    severity: "Moderate",
-    title: "Moderate Terrain Risk",
-    location: "East Khasi Hills, Meghalaya",
-    risk: 49,
-    time: "1 hr ago",
-    villages: 2,
-    population: 1960,
-    message:
-      "Risk indicators are elevated but remain below the high-risk threshold.",
-    status: "Monitoring",
-  },
-];
+import { useTerraGuard } from "../context/TerraGuardContext";
 
 function Alerts() {
-  
-  const [alerts, setAlerts] = useState(initialAlerts);
+  const navigate = useNavigate();
+
+  const {
+    alerts,
+    generateAlert,
+    acknowledgeAlert,
+  } = useTerraGuard();
+
   const [selectedAlert, setSelectedAlert] = useState(null);
 
-  const acknowledgeAlert = (id) => {
-    setAlerts((currentAlerts) =>
-      currentAlerts.map((alert) =>
-        alert.id === id
-          ? { ...alert, status: "Acknowledged" }
-          : alert
-      )
-    );
+  // --------------------------------------------------
+  // Generate a manual emergency alert
+  // --------------------------------------------------
 
-    setSelectedAlert(null);
-  };
-
-  const generateEmergencyAlert = () => {
-    const newAlert = {
-      id: Date.now(),
-      severity: "Critical",
-      title: "Emergency Alert Generated",
-      location: "East Sikkim, Sikkim",
+  const handleGenerateEmergencyAlert = () => {
+    generateAlert({
+      location: "East Sikkim",
+      type: "Emergency Landslide Warning",
       risk: 87,
-      time: "Just now",
-      villages: 3,
+      level: "Critical",
       population: 4820,
-      message:
-        "Critical risk identified by the AI prediction system. Immediate field assessment is recommended.",
+      villages: 3,
       status: "Active",
-    };
+    });
 
-    setAlerts((currentAlerts) => [newAlert, ...currentAlerts]);
+    navigate("/emergency-priority");
   };
 
-  const criticalCount = alerts.filter(
-    (alert) => alert.severity === "Critical" && alert.status === "Active"
+  // --------------------------------------------------
+  // Helpers
+  // --------------------------------------------------
+
+  const getLevelStyles = (level) => {
+    switch (level) {
+      case "Critical":
+        return {
+          badge: "bg-red-100 text-red-700",
+          border: "border-red-200",
+          iconBg: "bg-red-100",
+          icon: "text-red-600",
+        };
+
+      case "High":
+        return {
+          badge: "bg-orange-100 text-orange-700",
+          border: "border-orange-200",
+          iconBg: "bg-orange-100",
+          icon: "text-orange-600",
+        };
+
+      case "Moderate":
+        return {
+          badge: "bg-yellow-100 text-yellow-700",
+          border: "border-yellow-200",
+          iconBg: "bg-yellow-100",
+          icon: "text-yellow-600",
+        };
+
+      default:
+        return {
+          badge: "bg-emerald-100 text-emerald-700",
+          border: "border-emerald-200",
+          iconBg: "bg-emerald-100",
+          icon: "text-emerald-600",
+        };
+    }
+  };
+
+  const getStatusStyles = (status) => {
+    if (status === "Acknowledged") {
+      return "bg-emerald-100 text-emerald-700";
+    }
+
+    if (status === "Active") {
+      return "bg-red-100 text-red-700";
+    }
+
+    return "bg-slate-100 text-slate-600";
+  };
+
+  // --------------------------------------------------
+  // Statistics
+  // --------------------------------------------------
+
+  const criticalAlerts = alerts.filter(
+    (alert) => alert.level === "Critical"
   ).length;
 
-  const highCount = alerts.filter(
-    (alert) => alert.severity === "High" && alert.status === "Active"
+  const highPriorityAlerts = alerts.filter(
+    (alert) => alert.level === "High"
   ).length;
 
-  const acknowledgedCount = alerts.filter(
+  const acknowledgedAlerts = alerts.filter(
     (alert) => alert.status === "Acknowledged"
   ).length;
+
+  const activeAlerts = alerts.filter(
+    (alert) => alert.status !== "Acknowledged"
+  );
 
   return (
     <div className="min-h-screen bg-slate-50">
@@ -124,96 +127,107 @@ function Alerts() {
       <div className="ml-64">
         <Navbar />
 
-        <main className="page-enter p-8">
+        <main className="p-8">
+          {/* ------------------------------------------------ */}
+          {/* Header */}
+          {/* ------------------------------------------------ */}
 
-          {/* Page Header */}
-          <div className="mb-8 flex flex-col justify-between gap-5 lg:flex-row lg:items-end">
+          <div className="flex items-start justify-between">
             <div>
-              <div className="mb-2 flex items-center gap-2">
-                <span className="h-2 w-2 animate-pulse rounded-full bg-red-500"></span>
+              <div className="flex items-center gap-2">
+                <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-red-100">
+                  <Bell size={20} className="text-red-600" />
+                </div>
 
-                <span className="text-xs font-semibold uppercase tracking-widest text-red-600">
-                  Emergency Monitoring
-                </span>
+                <div>
+                  <h1 className="text-2xl font-bold text-slate-900">
+                    Emergency Alerts
+                  </h1>
+
+                  <p className="mt-1 text-sm text-slate-500">
+                    Monitor and manage active regional disaster warnings.
+                  </p>
+                </div>
               </div>
-
-              <h1 className="text-3xl font-bold tracking-tight text-slate-900">
-                Emergency Alerts
-              </h1>
-
-              <p className="mt-2 max-w-2xl text-sm text-slate-500">
-                Monitor AI-generated disaster alerts and coordinate rapid
-                response across vulnerable regions.
-              </p>
             </div>
 
             <button
-              onClick={() => {
-                generateEmergencyAlert();
-                navigate("/emergency-priority");
-              }}
-              className="flex items-center justify-center gap-2 rounded-xl bg-red-500 px-5 py-3 text-sm font-semibold text-white shadow-sm transition hover:bg-red-600"
+              onClick={handleGenerateEmergencyAlert}
+              className="flex items-center gap-2 rounded-xl bg-red-600 px-4 py-2.5 text-sm font-semibold text-white shadow-lg shadow-red-600/20 transition hover:bg-red-700"
             >
-              <ShieldAlert size={18} />
+              <Siren size={17} />
               Generate Emergency Alert
             </button>
           </div>
 
-          {/* Alert Summary */}
-          <div className="grid gap-4 md:grid-cols-3">
+          {/* ------------------------------------------------ */}
+          {/* Statistics */}
+          {/* ------------------------------------------------ */}
 
-            <div className="rounded-2xl border border-red-100 bg-white p-5 shadow-sm">
+          <div className="mt-8 grid grid-cols-1 gap-5 md:grid-cols-3">
+            {/* Critical */}
+            <div className="rounded-2xl border border-red-200 bg-white p-5 shadow-sm">
               <div className="flex items-center justify-between">
-                <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-red-50">
+                <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-red-100">
                   <AlertTriangle
                     size={21}
-                    className="text-red-500"
+                    className="text-red-600"
                   />
                 </div>
 
                 <span className="text-xs font-semibold text-red-500">
-                  LIVE
+                  CRITICAL
                 </span>
               </div>
 
-              <p className="mt-5 text-sm text-slate-500">
+              <p className="mt-5 text-sm font-medium text-slate-500">
                 Critical Alerts
               </p>
 
               <h2 className="mt-1 text-3xl font-bold text-slate-900">
-                {criticalCount}
+                {criticalAlerts}
               </h2>
+
+              <p className="mt-2 text-xs text-slate-400">
+                Immediate attention required
+              </p>
             </div>
 
-            <div className="rounded-2xl border border-orange-100 bg-white p-5 shadow-sm">
+            {/* High */}
+            <div className="rounded-2xl border border-orange-200 bg-white p-5 shadow-sm">
               <div className="flex items-center justify-between">
-                <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-orange-50">
-                  <Bell
+                <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-orange-100">
+                  <ShieldAlert
                     size={21}
-                    className="text-orange-500"
+                    className="text-orange-600"
                   />
                 </div>
 
                 <span className="text-xs font-semibold text-orange-500">
-                  ACTIVE
+                  HIGH
                 </span>
               </div>
 
-              <p className="mt-5 text-sm text-slate-500">
+              <p className="mt-5 text-sm font-medium text-slate-500">
                 High Priority Alerts
               </p>
 
               <h2 className="mt-1 text-3xl font-bold text-slate-900">
-                {highCount}
+                {highPriorityAlerts}
               </h2>
+
+              <p className="mt-2 text-xs text-slate-400">
+                Require close monitoring
+              </p>
             </div>
 
-            <div className="rounded-2xl border border-emerald-100 bg-white p-5 shadow-sm">
+            {/* Acknowledged */}
+            <div className="rounded-2xl border border-emerald-200 bg-white p-5 shadow-sm">
               <div className="flex items-center justify-between">
-                <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-emerald-50">
+                <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-emerald-100">
                   <CheckCircle2
                     size={21}
-                    className="text-emerald-500"
+                    className="text-emerald-600"
                   />
                 </div>
 
@@ -222,185 +236,229 @@ function Alerts() {
                 </span>
               </div>
 
-              <p className="mt-5 text-sm text-slate-500">
-                Acknowledged Alerts
+              <p className="mt-5 text-sm font-medium text-slate-500">
+                Acknowledged
               </p>
 
               <h2 className="mt-1 text-3xl font-bold text-slate-900">
-                {acknowledgedCount}
+                {acknowledgedAlerts}
               </h2>
-            </div>
 
+              <p className="mt-2 text-xs text-slate-400">
+                Alerts acknowledged by officers
+              </p>
+            </div>
           </div>
 
-          {/* Alerts List */}
-          <div className="mt-7 rounded-2xl border border-slate-200 bg-white shadow-sm">
+          {/* ------------------------------------------------ */}
+          {/* Active Alerts */}
+          {/* ------------------------------------------------ */}
 
+          <div className="mt-8 rounded-2xl border border-slate-200 bg-white shadow-sm">
             <div className="flex items-center justify-between border-b border-slate-200 px-6 py-5">
               <div>
-                <h2 className="font-semibold text-slate-900">
+                <h2 className="text-lg font-bold text-slate-900">
                   Active Alert Feed
                 </h2>
 
                 <p className="mt-1 text-xs text-slate-500">
-                  Real-time disaster intelligence generated by TerraGuard
+                  Real-time warnings generated by the TerraGuard monitoring
+                  system.
                 </p>
               </div>
 
-              <div className="flex items-center gap-2">
-                <span className="h-2 w-2 rounded-full bg-emerald-500"></span>
-
-                <span className="text-xs font-medium text-slate-500">
-                  System Operational
+              <div className="flex items-center gap-2 rounded-full bg-red-50 px-3 py-1.5">
+                <span className="h-2 w-2 rounded-full bg-red-500" />
+                <span className="text-xs font-semibold text-red-600">
+                  {activeAlerts.length} Active
                 </span>
               </div>
             </div>
 
             <div className="divide-y divide-slate-100">
+              {alerts.length === 0 ? (
+                <div className="px-6 py-12 text-center">
+                  <Bell
+                    size={30}
+                    className="mx-auto text-slate-300"
+                  />
 
-              {alerts.map((alert) => {
+                  <p className="mt-3 text-sm font-medium text-slate-500">
+                    No alerts available
+                  </p>
 
-                const severityStyles = {
-                  Critical: {
-                    badge: "bg-red-50 text-red-600",
-                    icon: "bg-red-50 text-red-500",
-                    border: "border-l-red-500",
-                  },
+                  <p className="mt-1 text-xs text-slate-400">
+                    New alerts will appear here automatically.
+                  </p>
+                </div>
+              ) : (
+                alerts.map((alert) => {
+                  const styles = getLevelStyles(alert.level);
 
-                  High: {
-                    badge: "bg-orange-50 text-orange-600",
-                    icon: "bg-orange-50 text-orange-500",
-                    border: "border-l-orange-500",
-                  },
-
-                  Moderate: {
-                    badge: "bg-yellow-50 text-yellow-600",
-                    icon: "bg-yellow-50 text-yellow-500",
-                    border: "border-l-yellow-500",
-                  },
-                };
-
-                const style =
-                  severityStyles[alert.severity];
-
-                return (
-                  <div
-                    key={alert.id}
-                    className={`border-l-4 px-6 py-5 ${style.border}`}
-                  >
-
-                    <div className="flex flex-col gap-5 xl:flex-row xl:items-center xl:justify-between">
-
-                      <div className="flex gap-4">
-
+                  return (
+                    <div
+                      key={alert.id}
+                      className={`p-6 transition hover:bg-slate-50 ${
+                        alert.status !== "Acknowledged"
+                          ? ""
+                          : "opacity-70"
+                      }`}
+                    >
+                      <div className="flex items-start gap-4">
+                        {/* Icon */}
                         <div
-                          className={`flex h-11 w-11 shrink-0 items-center justify-center rounded-xl ${style.icon}`}
+                          className={`flex h-11 w-11 shrink-0 items-center justify-center rounded-xl ${styles.iconBg}`}
                         >
-                          <AlertTriangle size={20} />
+                          <AlertTriangle
+                            size={21}
+                            className={styles.icon}
+                          />
                         </div>
 
-                        <div>
+                        {/* Main Content */}
+                        <div className="min-w-0 flex-1">
                           <div className="flex flex-wrap items-center gap-2">
-
-                            <h3 className="font-semibold text-slate-900">
-                              {alert.title}
+                            <h3 className="font-bold text-slate-900">
+                              {alert.type}
                             </h3>
 
                             <span
-                              className={`rounded-full px-2.5 py-1 text-[10px] font-bold uppercase ${style.badge}`}
+                              className={`rounded-full px-2.5 py-1 text-[10px] font-bold uppercase ${styles.badge}`}
                             >
-                              {alert.severity}
+                              {alert.level}
                             </span>
 
-                            {alert.status === "Acknowledged" && (
-                              <span className="rounded-full bg-emerald-50 px-2.5 py-1 text-[10px] font-bold uppercase text-emerald-600">
-                                Acknowledged
-                              </span>
-                            )}
-
+                            <span
+                              className={`rounded-full px-2.5 py-1 text-[10px] font-semibold ${getStatusStyles(
+                                alert.status
+                              )}`}
+                            >
+                              {alert.status}
+                            </span>
                           </div>
 
-                          <div className="mt-2 flex flex-wrap gap-x-4 gap-y-2 text-xs text-slate-500">
-
-                            <span className="flex items-center gap-1.5">
+                          {/* Location */}
+                          <div className="mt-2 flex flex-wrap items-center gap-4 text-xs text-slate-500">
+                            <div className="flex items-center gap-1.5">
                               <MapPin size={14} />
                               {alert.location}
-                            </span>
+                            </div>
 
-                            <span className="flex items-center gap-1.5">
-                              <Clock3 size={14} />
-                              {alert.time}
-                            </span>
+                            <div className="flex items-center gap-1.5">
+                              <Mountain size={14} />
+                              Risk {alert.risk}%
+                            </div>
 
-                            <span className="flex items-center gap-1.5">
+                            <div className="flex items-center gap-1.5">
                               <Users size={14} />
-                              {alert.population.toLocaleString()} people
-                            </span>
+                              {alert.population?.toLocaleString() || 0}{" "}
+                              people
+                            </div>
 
+                            <div className="flex items-center gap-1.5">
+                              <Clock size={14} />
+                              Live
+                            </div>
                           </div>
 
-                          <p className="mt-3 max-w-2xl text-xs leading-relaxed text-slate-500">
-                            {alert.message}
-                          </p>
+                          {/* Impact */}
+                          <div className="mt-4 flex flex-wrap gap-3">
+                            <div className="rounded-lg bg-slate-50 px-3 py-2">
+                              <p className="text-[10px] uppercase tracking-wide text-slate-400">
+                                Villages
+                              </p>
+
+                              <p className="mt-0.5 text-sm font-bold text-slate-800">
+                                {alert.villages || 0}
+                              </p>
+                            </div>
+
+                            <div className="rounded-lg bg-slate-50 px-3 py-2">
+                              <p className="text-[10px] uppercase tracking-wide text-slate-400">
+                                Risk Score
+                              </p>
+
+                              <p className="mt-0.5 text-sm font-bold text-slate-800">
+                                {alert.risk}%
+                              </p>
+                            </div>
+                          </div>
                         </div>
 
+                        {/* Actions */}
+                        <div className="flex shrink-0 flex-col gap-2">
+                          <button
+                            onClick={() =>
+                              setSelectedAlert(alert)
+                            }
+                            className="flex items-center justify-center gap-2 rounded-lg border border-slate-200 px-3 py-2 text-xs font-semibold text-slate-700 transition hover:bg-slate-100"
+                          >
+                            View Details
+                            <ArrowRight size={13} />
+                          </button>
+
+                          {alert.status !== "Acknowledged" && (
+                            <button
+                              onClick={() =>
+                                acknowledgeAlert(alert.id)
+                              }
+                              className="flex items-center justify-center gap-2 rounded-lg bg-emerald-600 px-3 py-2 text-xs font-semibold text-white transition hover:bg-emerald-700"
+                            >
+                              <CheckCircle2 size={13} />
+                              Acknowledge
+                            </button>
+                          )}
+                        </div>
                       </div>
-
-                      <div className="flex items-center gap-5">
-
-                        <div className="text-center">
-                          <p className="text-[10px] uppercase tracking-wide text-slate-400">
-                            Risk
-                          </p>
-
-                          <p className="mt-1 text-2xl font-black text-slate-900">
-                            {alert.risk}%
-                          </p>
-                        </div>
-
-                        <div className="hidden h-10 w-px bg-slate-200 xl:block"></div>
-
-                        <div className="text-center">
-                          <p className="text-[10px] uppercase tracking-wide text-slate-400">
-                            Villages
-                          </p>
-
-                          <p className="mt-1 text-lg font-bold text-slate-900">
-                            {alert.villages}
-                          </p>
-                        </div>
-
-                        <button
-                          onClick={() => setSelectedAlert(alert)}
-                          className="rounded-lg border border-slate-200 px-4 py-2.5 text-xs font-semibold text-slate-700 transition hover:bg-slate-50"
-                        >
-                          View Details
-                        </button>
-
-                      </div>
-
                     </div>
-
-                  </div>
-                );
-              })}
-
+                  );
+                })
+              )}
             </div>
           </div>
 
+          {/* ------------------------------------------------ */}
+          {/* Information Panel */}
+          {/* ------------------------------------------------ */}
+
+          <div className="mt-6 rounded-2xl border border-slate-200 bg-slate-900 p-6 text-white">
+            <div className="flex items-start gap-4">
+              <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-emerald-500/20">
+                <ShieldAlert
+                  size={20}
+                  className="text-emerald-400"
+                />
+              </div>
+
+              <div>
+                <h3 className="font-semibold">
+                  TerraGuard Alert Intelligence
+                </h3>
+
+                <p className="mt-1 max-w-3xl text-sm leading-relaxed text-slate-400">
+                  Alerts are generated from environmental risk indicators,
+                  AI risk predictions, and field observations. Critical
+                  alerts are prioritized for immediate response based on
+                  predicted risk, exposed population, affected villages,
+                  and available field reports.
+                </p>
+              </div>
+            </div>
+          </div>
         </main>
       </div>
 
+      {/* -------------------------------------------------- */}
       {/* Alert Details Modal */}
+      {/* -------------------------------------------------- */}
+
       {selectedAlert && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/40 p-6 backdrop-blur-sm">
-
-          <div className="w-full max-w-lg rounded-2xl bg-white shadow-2xl">
-
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/50 p-6 backdrop-blur-sm">
+          <div className="w-full max-w-lg overflow-hidden rounded-2xl bg-white shadow-2xl">
+            {/* Modal Header */}
             <div className="flex items-center justify-between border-b border-slate-200 px-6 py-5">
-
               <div>
-                <p className="text-[10px] font-semibold uppercase tracking-widest text-red-500">
+                <p className="text-xs font-semibold uppercase tracking-wider text-slate-400">
                   Alert Details
                 </p>
 
@@ -411,87 +469,112 @@ function Alerts() {
 
               <button
                 onClick={() => setSelectedAlert(null)}
-                className="rounded-lg p-2 text-slate-400 hover:bg-slate-100 hover:text-slate-700"
+                className="rounded-lg p-2 text-slate-400 transition hover:bg-slate-100 hover:text-slate-700"
               >
-                <X size={19} />
+                <X size={18} />
               </button>
-
             </div>
 
+            {/* Modal Body */}
             <div className="p-6">
+              <div className="flex items-center gap-3">
+                <div
+                  className={`flex h-12 w-12 items-center justify-center rounded-xl ${
+                    getLevelStyles(selectedAlert.level).iconBg
+                  }`}
+                >
+                  <AlertTriangle
+                    size={22}
+                    className={
+                      getLevelStyles(selectedAlert.level).icon
+                    }
+                  />
+                </div>
 
-              <div className="rounded-xl bg-red-50 p-5 text-center">
-                <p className="text-xs font-semibold uppercase tracking-widest text-red-500">
-                  Estimated Risk
-                </p>
+                <div>
+                  <h3 className="font-bold text-slate-900">
+                    {selectedAlert.type}
+                  </h3>
 
-                <p className="mt-2 text-5xl font-black text-red-600">
-                  {selectedAlert.risk}%
-                </p>
-
-                <p className="mt-1 text-xs text-red-500">
-                  {selectedAlert.severity} Risk
-                </p>
+                  <span
+                    className={`mt-1 inline-block rounded-full px-2.5 py-1 text-[10px] font-bold uppercase ${
+                      getLevelStyles(selectedAlert.level).badge
+                    }`}
+                  >
+                    {selectedAlert.level} Risk
+                  </span>
+                </div>
               </div>
 
-              <div className="mt-5 grid grid-cols-2 gap-3">
+              {/* Metrics */}
+              <div className="mt-6 grid grid-cols-2 gap-3">
+                <div className="rounded-xl bg-slate-50 p-4">
+                  <p className="text-xs text-slate-400">
+                    Risk Probability
+                  </p>
+
+                  <p className="mt-1 text-2xl font-bold text-slate-900">
+                    {selectedAlert.risk}%
+                  </p>
+                </div>
 
                 <div className="rounded-xl bg-slate-50 p-4">
-                  <p className="text-[10px] uppercase text-slate-400">
+                  <p className="text-xs text-slate-400">
+                    Population at Risk
+                  </p>
+
+                  <p className="mt-1 text-2xl font-bold text-slate-900">
+                    {selectedAlert.population?.toLocaleString() || 0}
+                  </p>
+                </div>
+
+                <div className="rounded-xl bg-slate-50 p-4">
+                  <p className="text-xs text-slate-400">
                     Villages
                   </p>
 
-                  <p className="mt-1 text-xl font-bold text-slate-900">
-                    {selectedAlert.villages}
+                  <p className="mt-1 text-2xl font-bold text-slate-900">
+                    {selectedAlert.villages || 0}
                   </p>
                 </div>
 
                 <div className="rounded-xl bg-slate-50 p-4">
-                  <p className="text-[10px] uppercase text-slate-400">
-                    Population
+                  <p className="text-xs text-slate-400">
+                    Status
                   </p>
 
-                  <p className="mt-1 text-xl font-bold text-slate-900">
-                    {selectedAlert.population.toLocaleString()}
-                  </p>
-                </div>
-
-              </div>
-
-              <div className="mt-5 rounded-xl border border-slate-200 p-4">
-
-                <div className="flex items-center gap-2">
-                  <Mountain size={17} className="text-slate-500" />
-
-                  <p className="text-xs font-semibold text-slate-700">
-                    AI Assessment
+                  <p className="mt-1 text-sm font-bold text-slate-900">
+                    {selectedAlert.status}
                   </p>
                 </div>
-
-                <p className="mt-3 text-sm leading-relaxed text-slate-500">
-                  {selectedAlert.message}
-                </p>
-
               </div>
 
-              {selectedAlert.status === "Active" && (
+              {/* Action */}
+              <div className="mt-6 flex gap-3">
+                {selectedAlert.status !== "Acknowledged" && (
+                  <button
+                    onClick={() => {
+                      acknowledgeAlert(selectedAlert.id);
+                      setSelectedAlert(null);
+                    }}
+                    className="flex flex-1 items-center justify-center gap-2 rounded-xl bg-emerald-600 px-4 py-3 text-sm font-semibold text-white transition hover:bg-emerald-700"
+                  >
+                    <CheckCircle2 size={16} />
+                    Acknowledge Alert
+                  </button>
+                )}
+
                 <button
-                  onClick={() =>
-                    acknowledgeAlert(selectedAlert.id)
-                  }
-                  className="mt-5 flex w-full items-center justify-center gap-2 rounded-xl bg-emerald-500 px-4 py-3 text-sm font-semibold text-white transition hover:bg-emerald-600"
+                  onClick={() => setSelectedAlert(null)}
+                  className="rounded-xl border border-slate-200 px-5 py-3 text-sm font-semibold text-slate-600 transition hover:bg-slate-50"
                 >
-                  <CheckCircle2 size={18} />
-                  Acknowledge Alert
+                  Close
                 </button>
-              )}
-
+              </div>
             </div>
-
           </div>
         </div>
       )}
-
     </div>
   );
 }
