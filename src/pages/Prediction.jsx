@@ -22,18 +22,24 @@ function Prediction() {
   const navigate = useNavigate();
 
   // Global TerraGuard data
-  const { selectedZone, savePrediction, generateAlert } = useTerraGuard();
+  const {
+    selectedZone,
+    savePrediction,
+    generateAlert,
+  } = useTerraGuard();
 
   // Prediction input values
   const [rainfall, setRainfall] = useState(
-    selectedZone?.rainfall?.toString() || "182",
+    selectedZone?.rainfall?.toString() || "182"
   );
 
   const [soilMoisture, setSoilMoisture] = useState(
-    selectedZone?.soilMoisture?.toString() || "81",
+    selectedZone?.soilMoisture?.toString() || "81"
   );
 
-  const [slope, setSlope] = useState(selectedZone?.slope?.toString() || "39");
+  const [slope, setSlope] = useState(
+    selectedZone?.slope?.toString() || "39"
+  );
 
   // Prediction states
   const [isAnalyzing, setIsAnalyzing] = useState(false);
@@ -177,11 +183,17 @@ function Prediction() {
   const resetPrediction = () => {
     setPrediction(null);
 
-    setRainfall(selectedZone?.rainfall?.toString() || "182");
+    setRainfall(
+      selectedZone?.rainfall?.toString() || "182"
+    );
 
-    setSoilMoisture(selectedZone?.soilMoisture?.toString() || "81");
+    setSoilMoisture(
+      selectedZone?.soilMoisture?.toString() || "81"
+    );
 
-    setSlope(selectedZone?.slope?.toString() || "39");
+    setSlope(
+      selectedZone?.slope?.toString() || "39"
+    );
   };
 
   // --------------------------------------------------
@@ -228,7 +240,7 @@ function Prediction() {
     <div className="min-h-screen bg-slate-50">
       <Sidebar />
 
-      <div className="280px] min-h-screen">
+      <div className="app-main">
         <Navbar />
 
         <main className="p-8">
@@ -237,7 +249,10 @@ function Prediction() {
           <div className="mb-8 flex items-start justify-between">
             <div>
               <div className="mb-2 flex items-center gap-2">
-                <BrainCircuit size={20} className="text-emerald-500" />
+                <BrainCircuit
+                  size={20}
+                  className="text-emerald-500"
+                />
 
                 <span className="text-xs font-semibold uppercase tracking-widest text-emerald-600">
                   AI Decision Support
@@ -249,8 +264,8 @@ function Prediction() {
               </h1>
 
               <p className="mt-2 max-w-2xl text-sm text-slate-500">
-                Analyze environmental conditions to estimate landslide risk for
-                monitored zones.
+                Analyze environmental conditions to estimate
+                landslide risk for monitored zones.
               </p>
             </div>
 
@@ -268,7 +283,10 @@ function Prediction() {
           <div className="mb-6 flex items-center justify-between rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
             <div className="flex items-center gap-4">
               <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-slate-900">
-                <MapPin size={20} className="text-white" />
+                <MapPin
+                  size={20}
+                  className="text-white"
+                />
               </div>
 
               <div>
@@ -284,7 +302,9 @@ function Prediction() {
 
             {selectedZone && (
               <div className="hidden text-right md:block">
-                <p className="text-xs text-slate-400">Region</p>
+                <p className="text-xs text-slate-400">
+                  Region
+                </p>
 
                 <p className="text-sm font-semibold text-slate-700">
                   {selectedZone.state || "Sikkim"}
@@ -306,7 +326,8 @@ function Prediction() {
                   </h2>
 
                   <p className="mt-1 text-sm text-slate-500">
-                    Enter or verify current environmental conditions.
+                    Enter or verify current environmental
+                    conditions.
                   </p>
                 </div>
 
@@ -315,7 +336,11 @@ function Prediction() {
 
                   <div>
                     <label className="mb-2 flex items-center gap-2 text-sm font-semibold text-slate-700">
-                      <CloudRain size={17} className="text-blue-500" />
+                      <CloudRain
+                        size={17}
+                        className="text-blue-500"
+                      />
+
                       Rainfall
                     </label>
 
@@ -323,7 +348,9 @@ function Prediction() {
                       <input
                         type="number"
                         value={rainfall}
-                        onChange={(e) => setRainfall(e.target.value)}
+                        onChange={(e) =>
+                          setRainfall(e.target.value)
+                        }
                         className="w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 pr-16 text-sm font-semibold text-slate-800 outline-none transition focus:border-emerald-500 focus:bg-white focus:ring-2 focus:ring-emerald-100"
                       />
 
@@ -341,7 +368,11 @@ function Prediction() {
 
                   <div>
                     <label className="mb-2 flex items-center gap-2 text-sm font-semibold text-slate-700">
-                      <Droplets size={17} className="text-cyan-500" />
+                      <Droplets
+                        size={17}
+                        className="text-cyan-500"
+                      />
+
                       Soil Moisture
                     </label>
 
@@ -349,7 +380,9 @@ function Prediction() {
                       <input
                         type="number"
                         value={soilMoisture}
-                        onChange={(e) => setSoilMoisture(e.target.value)}
+                        onChange={(e) =>
+                          setSoilMoisture(e.target.value)
+                        }
                         className="w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 pr-12 text-sm font-semibold text-slate-800 outline-none transition focus:border-emerald-500 focus:bg-white focus:ring-2 focus:ring-emerald-100"
                       />
 
@@ -367,7 +400,11 @@ function Prediction() {
 
                   <div>
                     <label className="mb-2 flex items-center gap-2 text-sm font-semibold text-slate-700">
-                      <Mountain size={17} className="text-amber-500" />
+                      <Mountain
+                        size={17}
+                        className="text-amber-500"
+                      />
+
                       Slope Angle
                     </label>
 
@@ -375,7 +412,9 @@ function Prediction() {
                       <input
                         type="number"
                         value={slope}
-                        onChange={(e) => setSlope(e.target.value)}
+                        onChange={(e) =>
+                          setSlope(e.target.value)
+                        }
                         className="w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 pr-12 text-sm font-semibold text-slate-800 outline-none transition focus:border-emerald-500 focus:bg-white focus:ring-2 focus:ring-emerald-100"
                       />
 
@@ -399,12 +438,17 @@ function Prediction() {
                 >
                   {isAnalyzing ? (
                     <>
-                      <Loader2 size={17} className="animate-spin" />
+                      <Loader2
+                        size={17}
+                        className="animate-spin"
+                      />
+
                       Analyzing Environmental Data...
                     </>
                   ) : (
                     <>
                       <BrainCircuit size={17} />
+
                       Analyze Risk
                     </>
                   )}
@@ -418,6 +462,7 @@ function Prediction() {
                     className="mt-3 flex w-full items-center justify-center gap-2 rounded-xl border border-slate-200 bg-white px-5 py-3 text-sm font-semibold text-slate-600 transition hover:bg-slate-50"
                   >
                     <RotateCcw size={15} />
+
                     Run New Analysis
                   </button>
                 )}
@@ -430,7 +475,10 @@ function Prediction() {
               {!prediction && !isAnalyzing && (
                 <div className="flex min-h-[450px] flex-col items-center justify-center rounded-2xl border border-dashed border-slate-300 bg-white p-8 text-center">
                   <div className="flex h-16 w-16 items-center justify-center rounded-2xl bg-slate-100">
-                    <BrainCircuit size={30} className="text-slate-400" />
+                    <BrainCircuit
+                      size={30}
+                      className="text-slate-400"
+                    />
                   </div>
 
                   <h3 className="mt-5 text-lg font-bold text-slate-800">
@@ -438,8 +486,9 @@ function Prediction() {
                   </h3>
 
                   <p className="mt-2 max-w-xs text-sm leading-relaxed text-slate-500">
-                    Enter environmental values and run the AI analysis to
-                    generate a landslide risk prediction.
+                    Enter environmental values and run the AI
+                    analysis to generate a landslide risk
+                    prediction.
                   </p>
                 </div>
               )}
@@ -458,8 +507,8 @@ function Prediction() {
                   </h3>
 
                   <p className="mt-2 max-w-xs text-sm leading-relaxed text-slate-500">
-                    Processing rainfall, soil moisture and terrain conditions
-                    for {zoneName}.
+                    Processing rainfall, soil moisture and
+                    terrain conditions for {zoneName}.
                   </p>
 
                   <div className="mt-6 w-full max-w-xs">
@@ -486,9 +535,15 @@ function Prediction() {
                     </div>
 
                     {prediction.level === "Critical" ? (
-                      <AlertTriangle size={23} className="text-red-500" />
+                      <AlertTriangle
+                        size={23}
+                        className="text-red-500"
+                      />
                     ) : (
-                      <CheckCircle2 size={23} className="text-emerald-500" />
+                      <CheckCircle2
+                        size={23}
+                        className="text-emerald-500"
+                      />
                     )}
                   </div>
 
@@ -571,12 +626,18 @@ function Prediction() {
                     className="mt-6 flex w-full items-center justify-center gap-2 rounded-xl bg-red-600 px-5 py-3.5 text-sm font-semibold text-white shadow-lg shadow-red-600/20 transition hover:bg-red-700"
                   >
                     <AlertTriangle size={17} />
+
                     Generate Emergency Alert
-                    <ArrowRight size={16} className="ml-auto" />
+
+                    <ArrowRight
+                      size={16}
+                      className="ml-auto"
+                    />
                   </button>
 
                   <p className="mt-3 text-center text-[11px] text-slate-500">
-                    This will create an active alert for {prediction.location}.
+                    This will create an active alert for{" "}
+                    {prediction.location}.
                   </p>
                 </div>
               )}
@@ -588,7 +649,10 @@ function Prediction() {
           <div className="mt-6 rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
             <div className="flex items-start gap-4">
               <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-blue-50">
-                <BrainCircuit size={19} className="text-blue-500" />
+                <BrainCircuit
+                  size={19}
+                  className="text-blue-500"
+                />
               </div>
 
               <div>
@@ -597,11 +661,13 @@ function Prediction() {
                 </h3>
 
                 <p className="mt-1 text-xs leading-relaxed text-slate-500">
-                  TerraGuard combines rainfall, soil moisture and terrain slope
-                  indicators to estimate landslide risk. In the production
-                  system, this decision-support layer can be connected to
-                  trained ML models, real-time sensors, satellite data and
-                  historical disaster records.
+                  TerraGuard combines rainfall, soil moisture
+                  and terrain slope indicators to estimate
+                  landslide risk. In the production system,
+                  this decision-support layer can be connected
+                  to trained ML models, real-time sensors,
+                  satellite data and historical disaster
+                  records.
                 </p>
               </div>
             </div>
