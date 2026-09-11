@@ -46,7 +46,7 @@ const navigation = [
 
 function Sidebar() {
   return (
-    <aside className="fixed left-0 top-0 z-40 flex h-screen w-64 flex-col border-r border-slate-800 bg-slate-950 text-white">
+    <aside className="fixed left-0 top-0 z-40 hidden h-screen w-64 flex-col border-r border-slate-800 bg-slate-950 text-white lg:flex">
 
       {/* Logo */}
       <div className="flex h-20 items-center border-b border-slate-800 px-6">

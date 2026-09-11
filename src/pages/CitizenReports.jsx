@@ -120,7 +120,7 @@ function CitizenReports() {
 
         <Navbar />
 
-        <main className="p-8">
+        <main className="page-enter p-8">
 
           {/* Header */}
           <div className="mb-8 flex flex-col justify-between gap-5 lg:flex-row lg:items-end">

@@ -139,7 +139,7 @@ function RiskMap() {
       <div className="ml-64">
         <Navbar />
 
-        <main className="p-8">
+        <main className="page-enter p-8">
 
           {/* Heading */}
           <div className="mb-6 flex flex-col justify-between gap-4 lg:flex-row lg:items-end">
