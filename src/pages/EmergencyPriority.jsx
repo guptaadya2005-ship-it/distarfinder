@@ -160,7 +160,7 @@ function EmergencyPriority() {
           MAIN CONTENT
       -------------------------------------------------- */}
 
-      <div className="ml-64 min-h-screen">
+      <div className="ml-[280px] min-h-screen">
         <Navbar />
 
         <main className="p-6">

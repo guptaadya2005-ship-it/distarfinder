@@ -174,7 +174,7 @@ function RiskMap() {
     <div className="min-h-screen bg-slate-50">
       <Sidebar />
 
-      <div className="ml-64">
+      <div className="ml-[280px] min-h-screen">
         <Navbar />
 
         <main className="page-enter p-8">

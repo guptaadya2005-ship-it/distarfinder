@@ -22,7 +22,7 @@ function Dashboard() {
       <Sidebar />
 
       {/* Main application */}
-      <div className="lg:ml-64">
+      <div className="ml-[280px] min-h-screen">
         <Navbar />
 
         <main className="page-enter p-8">
