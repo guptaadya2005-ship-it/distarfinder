@@ -11,7 +11,7 @@ import EmergencyPriority from "./pages/EmergencyPriority";
 
 function App() {
   return (
-    <BrowserRouter>
+    <BrowserRouter basename="/distarfinder">
       <TerraGuardProvider>
         <Routes>
           <Route path="/" element={<Dashboard />} />
